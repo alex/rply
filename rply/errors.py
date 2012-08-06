@@ -1,0 +1,2 @@
+class ParserGeneratorError(Exception):
+    pass
