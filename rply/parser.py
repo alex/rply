@@ -29,7 +29,13 @@ class LRParser(object):
             if ltype in self.lr_table.lr_action[state]:
                 t = self.lr_table.lr_action[state][ltype]
                 if t > 0:
-                    raise NotImplementedError
+                    statestack.append(t)
+                    state = t
+                    symstack.append(lookahead)
+                    lookahead = None
+                    if error_count:
+                        error_count -= 1
+                    continue
                 elif t < 0:
                     raise NotImplementedError
                 else:

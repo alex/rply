@@ -164,6 +164,7 @@ class Production(object):
         self.lr_items = []
         self.lr_next = None
         self.lr0_added = 0
+        self.reduced = 0
 
     def getlength(self):
         return len(self.prod)

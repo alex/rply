@@ -78,7 +78,7 @@ class LRTable(object):
 
         self.lr_action = {}
         self.lr_goto = {}
-        self.lr_goto_cache = {}
+        self._lr_goto_cache = IdentityDict()
         self.lr0_cidhash = IdentityDict()
 
         self._add_count = 0
@@ -129,6 +129,9 @@ class LRTable(object):
         return J
 
     def lr0_goto(self, I, x):
+        if I in self._lr_goto_cache and x in self._lr_goto_cache[I]:
+            return self._lr_goto_cache[I][x]
+
         gs = []
         s = {}
         for p in I:
@@ -147,6 +150,7 @@ class LRTable(object):
                 s["$end"] = g
             else:
                 s["$end"] = gs
+        self._lr_goto_cache.setdefault(I, {})[x] = g
         return g
 
     def add_lalr_lookaheads(self, C):

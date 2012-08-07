@@ -1,5 +1,7 @@
 from rply import ParserGenerator, Token
 
+from .utils import FakeLexer
+
 
 class TestBasic(object):
     def test_simplest(self):
@@ -11,4 +13,4 @@ class TestBasic(object):
 
         parser = pg.build()
 
-        assert parser.parse(iter([Token("VALUE", "abc")])) == "abc"
+        assert parser.parse(FakeLexer([Token("VALUE", "abc")])) == "abc"
