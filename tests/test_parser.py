@@ -34,5 +34,5 @@ class TestBasic(object):
         assert parser.parse(FakeLexer([
             Token("NUMBER", "1"),
             Token("PLUS", "+"),
-            Token("NUMER", "4")
+            Token("NUMBER", "4")
         ])) == BoxInt(5)

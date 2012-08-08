@@ -3,7 +3,7 @@ class LRParser(object):
         self.lr_table = lr_table
 
     def parse(self, tokenizer):
-        from rply.token import Token, ProductionSymbol
+        from rply.token import Token
 
         lookahead = None
         lookaheadstack = []
@@ -39,14 +39,13 @@ class LRParser(object):
                     p = self.lr_table.grammar.productions[-t]
                     pname = p.name
                     plen = p.getlength()
-                    sym = ProductionSymbol(pname, None)
                     if plen:
                         targ = symstack[-plen - 1:]
                         del targ[0]
                         del symstack[-plen:]
                         del statestack[-plen:]
-                        sym.value = p.func(targ)
-                        symstack.append(sym)
+                        value = p.func(targ)
+                        symstack.append(value)
                         state = self.lr_table.lr_goto[statestack[-1]][pname]
                         statestack.append(state)
                     else:
@@ -54,6 +53,6 @@ class LRParser(object):
                     continue
                 else:
                     n = symstack[-1]
-                    return n.value
+                    return n
             else:
                 raise NotImplementedError

@@ -13,4 +13,11 @@ class FakeLexer(object):
 
 
 class BoxInt(BaseBox):
-    pass
+    def __init__(self, value):
+        self.value = value
+
+    def __eq__(self, other):
+        return self.value == other.value
+
+    def getint(self):
+        return self.value

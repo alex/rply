@@ -61,7 +61,7 @@ def traverse(x, N, stack, F, X, R, FP):
         N[x] = min(N[x], N[y])
         for a in F.get(y, []):
             if a not in F[x]:
-                F[X].append(a)
+                F[x].append(a)
     if N[x] == d:
         N[stack[-1]] = sys.maxint
         F[stack[-1]] = F[x]
@@ -79,6 +79,7 @@ class LRTable(object):
         self.lr_action = {}
         self.lr_goto = {}
         self._lr_goto_cache = IdentityDict()
+        self._lr_other_goto_cache = {}
         self.lr0_cidhash = IdentityDict()
 
         self._add_count = 0
@@ -132,8 +133,9 @@ class LRTable(object):
         if I in self._lr_goto_cache and x in self._lr_goto_cache[I]:
             return self._lr_goto_cache[I][x]
 
+        s = self._lr_other_goto_cache.setdefault(x, IdentityDict())
+
         gs = []
-        s = {}
         for p in I:
             n = p.lr_next
             if n and n.lr_before == x:

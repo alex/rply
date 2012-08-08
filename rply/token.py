@@ -15,12 +15,5 @@ class Token(BaseBox):
     def gettokentype(self):
         return self.name
 
-
-class ProductionSymbol(BaseBox):
-    def __init__(self, name, value):
-        BaseBox.__init__(self)
-        self.name = name
-        self.value = value
-
-    def gettokentype(self):
-        return self.name
+    def getstr(self):
+        return self.value
