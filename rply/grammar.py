@@ -184,3 +184,6 @@ class LRItem(object):
 
     def getlength(self):
         return len(self.prod)
+
+    def __repr__(self):
+        return "LRItem(%s -> %s)" % (self.name, " ".join(self.prod))
