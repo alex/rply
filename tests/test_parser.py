@@ -4,7 +4,7 @@ from .utils import FakeLexer
 
 
 class TestBasic(object):
-    def test_simplest(self):
+    def test_parser(self):
         pg = ParserGenerator(["VALUE"])
 
         @pg.production("main : VALUE")
