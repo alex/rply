@@ -3,17 +3,15 @@ class LRParser(object):
         self.lr_table = lr_table
 
     def parse(self, tokenizer):
-        from rply import Token
+        from rply.token import Token, ProductionSymbol
 
         lookahead = None
         lookaheadstack = []
         error_count = 0
 
-        statestack = []
-        symstack = []
+        statestack = [0]
+        symstack = [Token("$end", None)]
 
-        statestack.append(0)
-        symstack.append(Token("$end", None))
         state = 0
         while True:
             if lookahead is None:
@@ -37,8 +35,25 @@ class LRParser(object):
                         error_count -= 1
                     continue
                 elif t < 0:
-                    raise NotImplementedError
+                    # reduce a symbol on the stack and emit a production
+                    p = self.lr_table.grammar.productions[-t]
+                    pname = p.name
+                    plen = p.getlength()
+                    sym = ProductionSymbol(pname, None)
+                    if plen:
+                        targ = symstack[-plen - 1:]
+                        del targ[0]
+                        del symstack[-plen:]
+                        del statestack[-plen:]
+                        sym.value = p.func(targ)
+                        symstack.append(sym)
+                        state = self.lr_table.lr_goto[statestack[-1]][pname]
+                        statestack.append(state)
+                    else:
+                        raise NotImplementedError
+                    continue
                 else:
-                    raise NotImplementedError
+                    n = symstack[-1]
+                    return n.value
             else:
                 raise NotImplementedError

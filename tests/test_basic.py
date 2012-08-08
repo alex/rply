@@ -13,4 +13,4 @@ class TestBasic(object):
 
         parser = pg.build()
 
-        assert parser.parse(FakeLexer([Token("VALUE", "abc")])) == "abc"
+        assert parser.parse(FakeLexer([Token("VALUE", "abc")])) == Token("VALUE", "abc")
