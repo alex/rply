@@ -49,11 +49,11 @@ class LRParser(object):
                         del symstack[start:]
                         del statestack[start:]
                         value = p.func(targ)
-                        symstack.append(value)
-                        state = self.lr_table.lr_goto[statestack[-1]][pname]
-                        statestack.append(state)
                     else:
-                        raise NotImplementedError
+                        value = p.func([])
+                    symstack.append(value)
+                    state = self.lr_table.lr_goto[statestack[-1]][pname]
+                    statestack.append(state)
                     continue
                 else:
                     n = symstack[-1]
