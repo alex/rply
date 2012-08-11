@@ -4,3 +4,7 @@ class ParserGeneratorError(Exception):
 
 class ParsingError(Exception):
     pass
+
+
+class ParserGeneratorWarning(Warning):
+    pass

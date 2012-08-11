@@ -1,6 +1,7 @@
 import sys
+import warnings
 
-from rply.errors import ParserGeneratorError
+from rply.errors import ParserGeneratorError, ParserGeneratorWarning
 from rply.grammar import Grammar
 from rply.parser import LRParser
 from rply.utils import IdentityDict
@@ -35,6 +36,12 @@ class ParserGenerator(object):
         g.compute_follow()
 
         table = LRTable(g)
+        if table.sr_conflicts:
+            warnings.warn(
+                "%d shift/reduce conflicts" % len(table.sr_conflicts),
+                ParserGeneratorWarning,
+                stacklevel=2
+            )
         return LRParser(table)
 
 

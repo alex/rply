@@ -1,10 +1,12 @@
 import py
 
 from rply import ParserGenerator
-from rply.errors import ParserGeneratorError
+from rply.errors import ParserGeneratorError, ParserGeneratorWarning
+
+from .base import BaseTests
 
 
-class TestParserBuilder(object):
+class TestParserGenerator(BaseTests):
     def test_simple(self):
         pg = ParserGenerator(["VALUE"])
 
