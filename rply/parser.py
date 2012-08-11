@@ -40,10 +40,14 @@ class LRParser(object):
                     pname = p.name
                     plen = p.getlength()
                     if plen:
-                        targ = symstack[-plen - 1:]
+                        start = len(symstack) + (-plen - 1)
+                        assert start >= 0
+                        targ = symstack[start:]
                         del targ[0]
-                        del symstack[-plen:]
-                        del statestack[-plen:]
+                        start = len(symstack) + (-plen)
+                        assert start >= 0
+                        del symstack[start:]
+                        del statestack[start:]
                         value = p.func(targ)
                         symstack.append(value)
                         state = self.lr_table.lr_goto[statestack[-1]][pname]
