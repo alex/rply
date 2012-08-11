@@ -38,7 +38,7 @@ class ParserGenerator(object):
         table = LRTable(g)
         if table.sr_conflicts:
             warnings.warn(
-                "%d shift/reduce conflicts" % len(table.sr_conflicts),
+                "%d shift/reduce conflict%s" % (len(table.sr_conflicts), "s" if len(table.sr_conflicts) > 1 else ""),
                 ParserGeneratorWarning,
                 stacklevel=2
             )

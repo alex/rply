@@ -1,9 +1,11 @@
 from rply import ParserGenerator, Token
+from rply.errors import ParserGeneratorWarning
 
+from .base import BaseTests
 from .utils import FakeLexer, BoxInt
 
 
-class TestBasic(object):
+class TestBasic(BaseTests):
     def test_simple(self):
         pg = ParserGenerator(["VALUE"])
 
@@ -15,7 +17,7 @@ class TestBasic(object):
 
         assert parser.parse(FakeLexer([Token("VALUE", "abc")])) == Token("VALUE", "abc")
 
-    def test_arithmatic(self):
+    def test_arithmetic(self):
         pg = ParserGenerator(["NUMBER", "PLUS"])
 
         @pg.production("main : expr")
@@ -30,7 +32,8 @@ class TestBasic(object):
         def expr_num(p):
             return BoxInt(int(p[0].getstr()))
 
-        parser = pg.build()
+        with self.assert_warns(ParserGeneratorWarning, "1 shift/reduce conflict"):
+            parser = pg.build()
         assert parser.parse(FakeLexer([
             Token("NUMBER", "1"),
             Token("PLUS", "+"),
