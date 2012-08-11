@@ -39,18 +39,15 @@ class LRParser(object):
                     p = self.lr_table.grammar.productions[-t]
                     pname = p.name
                     plen = p.getlength()
-                    if plen:
-                        start = len(symstack) + (-plen - 1)
-                        assert start >= 0
-                        targ = symstack[start:]
-                        del targ[0]
-                        start = len(symstack) + (-plen)
-                        assert start >= 0
-                        del symstack[start:]
-                        del statestack[start:]
-                        value = p.func(targ)
-                    else:
-                        value = p.func([])
+                    start = len(symstack) + (-plen - 1)
+                    assert start >= 0
+                    targ = symstack[start:]
+                    del targ[0]
+                    start = len(symstack) + (-plen)
+                    assert start >= 0
+                    del symstack[start:]
+                    del statestack[start:]
+                    value = p.func(targ)
                     symstack.append(value)
                     state = self.lr_table.lr_goto[statestack[-1]][pname]
                     statestack.append(state)
