@@ -40,7 +40,13 @@ class ParserGenerator(object):
             warnings.warn(
                 "%d shift/reduce conflict%s" % (len(table.sr_conflicts), "s" if len(table.sr_conflicts) > 1 else ""),
                 ParserGeneratorWarning,
-                stacklevel=2
+                stacklevel=2,
+            )
+        if table.rr_conflicts:
+            warnings.warn(
+                "%d reduce/reduce conflict%s" % (len(table.rr_conflicts), "s" if len(table.rr_conflicts) > 1 else ""),
+                ParserGeneratorWarning,
+                stacklevel=2,
             )
         return LRParser(table)
 
@@ -340,6 +346,9 @@ class LRTable(object):
                                         chosenp, rejectp = pp, oldp
                                         self.grammar.productions[p.number].reduced += 1
                                         self.grammar.productions[oldp.number].reduced -= 1
+                                    else:
+                                        chosenp, rejectp = oldp, pp
+                                    self.rr_conflicts.append((st, chosenp, rejectp))
                                 else:
                                     raise LALRError("Unknown conflict in state %d" % st)
                             else:

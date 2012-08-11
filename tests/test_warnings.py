@@ -5,7 +5,7 @@ from .base import BaseTests
 
 
 class TestWarnings(BaseTests):
-    def test_shift_reduce_warning(self):
+    def test_shift_reduce(self):
         pg = ParserGenerator([
             "NAME", "NUMBER", "EQUALS", "PLUS", "MINUS", "TIMES", "DIVIDE",
             "LPAREN", "RPAREN"
@@ -43,4 +43,23 @@ class TestWarnings(BaseTests):
             pass
 
         with self.assert_warns(ParserGeneratorWarning, "20 shift/reduce conflicts"):
+            pg.build()
+
+    def test_reduce_reduce(self):
+        pg = ParserGenerator(["NAME", "EQUALS", "NUMBER"])
+
+        @pg.production("main : assign")
+        def main(p):
+            pass
+
+        @pg.production("assign : NAME EQUALS expression")
+        @pg.production("assign : NAME EQUALS NUMBER")
+        def assign(p):
+            pass
+
+        @pg.production("expression : NUMBER")
+        def expression(p):
+            pass
+
+        with self.assert_warns(ParserGeneratorWarning, "1 reduce/reduce conflict"):
             pg.build()
