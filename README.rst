@@ -5,7 +5,9 @@ Welcome to RPLY! A pure python parser generator, that also works with RPython.
 It is a more-or-less direct port of David Beazley's awesome PLY, with a new
 public API, and RPython support.
 
-Basic API::
+Basic API:
+
+.. code:: python
 
     from rply import ParserGenerator
     from rply.token import BaseBox
@@ -44,7 +46,9 @@ Basic API::
         def getint(self):
             return self.value
 
-Then you can do::
+Then you can do:
+
+.. code:: python
 
     parser.parse(lexer)
 
