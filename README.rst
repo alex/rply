@@ -56,4 +56,5 @@ Why do we have the boxes?
 
 In RPython, like other statically typed languages, a variable must have a
 specific type, we take advantage of polymorphism to keep values in a box so
-that everything is statically typed.
+that everything is statically typed. You can write whatever boxes you need for
+your project.
