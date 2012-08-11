@@ -44,7 +44,7 @@ Basic API::
         def getint(self):
             return self.value
 
-Then yo can do::
+Then you can do::
 
     parser.parse(lexer)
 
