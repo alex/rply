@@ -1,3 +1,5 @@
+import operator
+
 from rply import ParserGenerator, Token
 from rply.errors import ParserGeneratorWarning
 
@@ -73,3 +75,35 @@ class TestBasic(BaseTests):
         ])) == ["abc", "def", "ghi"]
 
         assert parser.parse(FakeLexer([])) == []
+
+    def test_precedence(self):
+        pg = ParserGenerator(["NUMBER", "PLUS", "TIMES"], precedence=[
+            ("left", ["PLUS"]),
+            ("left", ["TIMES"]),
+        ])
+
+        @pg.production("main : expr")
+        def main(p):
+            return p[0]
+
+        @pg.production("expr : expr PLUS expr")
+        @pg.production("expr : expr TIMES expr")
+        def expr_binop(p):
+            return BoxInt({
+                "+": operator.add,
+                "*": operator.mul
+            }[p[1].getstr()](p[0].getint(), p[2].getint()))
+
+        @pg.production("expr : NUMBER")
+        def expr_num(p):
+            return BoxInt(int(p[0].getstr()))
+
+        parser = pg.build()
+
+        assert parser.parse(FakeLexer([
+            Token("NUMBER", "3"),
+            Token("TIMES", "*"),
+            Token("NUMBER", "4"),
+            Token("PLUS",  "+"),
+            Token("NUMBER", "5")
+        ])) == BoxInt(17)

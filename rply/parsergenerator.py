@@ -8,9 +8,10 @@ from rply.utils import IdentityDict
 
 
 class ParserGenerator(object):
-    def __init__(self, tokens):
+    def __init__(self, tokens, precedence=[]):
         self.tokens = tokens
         self.productions = []
+        self.precedence = precedence
 
     def production(self, rule):
         parts = rule.split()
@@ -26,6 +27,10 @@ class ParserGenerator(object):
 
     def build(self):
         g = Grammar(self.tokens)
+
+        for level, (assoc, terms) in enumerate(self.precedence, 1):
+            for term in terms:
+                g.set_precedence(term, assoc, level)
 
         for prod_name, syms, func in self.productions:
             g.add_production(prod_name, syms, func)

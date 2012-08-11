@@ -47,6 +47,13 @@ class Grammar(object):
 
         self.prod_names.setdefault(prod_name, []).append(p)
 
+    def set_precedence(self, term, assoc, level):
+        if term in self.precedence:
+            raise ParserGeneratorError("Precedence already specified for %s" % term)
+        if assoc not in {"left", "right", "nonassoc"}:
+            raise ParserGeneratorError("Precedence must be one of left, right, nonassoc; not %s" % assoc)
+        self.precedence[term] = (assoc, level)
+
     def set_start(self):
         start = self.productions[1].name
         self.productions[0] = Production(0, "S'", [start], ("right", 0), None)
