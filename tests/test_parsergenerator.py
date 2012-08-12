@@ -60,3 +60,19 @@ class TestParserGenerator(BaseTests):
 
         with py.test.raises(ParserGeneratorError):
             pg.build()
+
+    def test_duplicate_precedence(self):
+        pg = ParserGenerator([], precedence=[
+            ("left", ["term", "term"])
+        ])
+
+        with py.test.raises(ParserGeneratorError):
+            pg.build()
+
+    def test_invalid_associativity(self):
+        pg = ParserGenerator([], precedence=[
+            ("to-the-left", ["term"]),
+        ])
+
+        with py.test.raises(ParserGeneratorError):
+            pg.build()
