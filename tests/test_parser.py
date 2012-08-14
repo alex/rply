@@ -3,6 +3,7 @@ import operator
 import py
 
 from rply import ParserGenerator, Token, ParsingError
+from rply.token import SourcePosition
 from rply.errors import ParserGeneratorWarning
 
 from .base import BaseTests
@@ -149,8 +150,10 @@ class TestBasic(BaseTests):
 
         parser = pg.build()
 
-        with py.test.raises(ParsingError):
+        with py.test.raises(ParsingError) as exc_info:
             parser.parse(FakeLexer([
                 Token("VALUE", "hello"),
-                Token("VALUE", "world"),
+                Token("VALUE", "world", SourcePosition(5, 10, 2)),
             ]))
+
+        assert exc_info.value.getsourcepos().lineno == 10
