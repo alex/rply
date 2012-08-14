@@ -16,6 +16,9 @@ class BoxInt(BaseBox):
     def __init__(self, value):
         self.value = value
 
+    def __repr__(self):
+        return "%s(%d)" % (self.__class__.__name__, self.value)
+
     def __eq__(self, other):
         return self.value == other.value
 

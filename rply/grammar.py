@@ -26,11 +26,11 @@ class Grammar(object):
         self.precedence = {}
         self.start = None
 
-    def add_production(self, prod_name, syms, func):
+    def add_production(self, prod_name, syms, func, precedence):
         if prod_name in self.terminals:
             raise ParserGeneratorError("Illegal rule name %s" % prod_name)
 
-        precname = rightmost_terminal(syms, self.terminals)
+        precname = precedence if precedence is not None else rightmost_terminal(syms, self.terminals)
         prod_prec = self.precedence.get(precname, ("right", 0))
 
         pnumber = len(self.productions)

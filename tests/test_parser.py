@@ -107,3 +107,33 @@ class TestBasic(BaseTests):
             Token("PLUS",  "+"),
             Token("NUMBER", "5")
         ])) == BoxInt(17)
+
+    def test_per_rule_precedence(self):
+        pg = ParserGenerator(["NUMBER", "MINUS"], precedence=[
+            ("right", ["UMINUS"]),
+        ])
+
+        @pg.production("main : expr")
+        def main_expr(p):
+            return p[0]
+
+        @pg.production("expr : expr MINUS expr")
+        def expr_minus(p):
+            return BoxInt(p[0].getint() - p[2].getint())
+
+        @pg.production("expr : MINUS expr", precedence="UMINUS")
+        def expr_uminus(p):
+            return BoxInt(-p[1].getint())
+
+        @pg.production("expr : NUMBER")
+        def expr_number(p):
+            return BoxInt(int(p[0].getstr()))
+
+        parser = pg.build()
+
+        assert parser.parse(FakeLexer([
+            Token("MINUS", "-"),
+            Token("NUMBER", "4"),
+            Token("MINUS", "-"),
+            Token("NUMBER", "5"),
+        ])) == BoxInt(-9)

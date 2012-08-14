@@ -13,7 +13,7 @@ class ParserGenerator(object):
         self.productions = []
         self.precedence = precedence
 
-    def production(self, rule):
+    def production(self, rule, precedence=None):
         parts = rule.split()
         production_name = parts[0]
         if parts[1] != ":":
@@ -21,7 +21,7 @@ class ParserGenerator(object):
         syms = parts[2:]
 
         def inner(func):
-            self.productions.append((production_name, syms, func))
+            self.productions.append((production_name, syms, func, precedence))
             return func
         return inner
 
@@ -32,8 +32,8 @@ class ParserGenerator(object):
             for term in terms:
                 g.set_precedence(term, assoc, level)
 
-        for prod_name, syms, func in self.productions:
-            g.add_production(prod_name, syms, func)
+        for prod_name, syms, func, precedence in self.productions:
+            g.add_production(prod_name, syms, func, precedence)
 
         g.set_start()
         g.build_lritems()
