@@ -65,3 +65,7 @@ In RPython, like other statically typed languages, a variable must have a
 specific type, we take advantage of polymorphism to keep values in a box so
 that everything is statically typed. You can write whatever boxes you need for
 your project.
+
+If you don't intend to use your parser from RPython, and just want a cool pure
+Python parser you can ignore all the box stuff and just return whatever you like
+from each production method.
