@@ -1,6 +1,8 @@
 import operator
 
-from rply import ParserGenerator, Token
+import py
+
+from rply import ParserGenerator, Token, ParsingError
 from rply.errors import ParserGeneratorWarning
 
 from .base import BaseTests
@@ -137,3 +139,18 @@ class TestBasic(BaseTests):
             Token("MINUS", "-"),
             Token("NUMBER", "5"),
         ])) == BoxInt(-9)
+
+    def test_parse_error(self):
+        pg = ParserGenerator(["VALUE"])
+
+        @pg.production("main : VALUE")
+        def main(p):
+            return p[0]
+
+        parser = pg.build()
+
+        with py.test.raises(ParsingError):
+            parser.parse(FakeLexer([
+                Token("VALUE", "hello"),
+                Token("VALUE", "world"),
+            ]))

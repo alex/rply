@@ -1,3 +1,6 @@
+from rply.errors import ParsingError
+
+
 class LRParser(object):
     def __init__(self, lr_table):
         self.lr_table = lr_table
@@ -56,4 +59,5 @@ class LRParser(object):
                     n = symstack[-1]
                     return n
             else:
-                raise NotImplementedError
+                # TODO: actual error handling here
+                raise ParsingError(lookahead.getsourcepos())
