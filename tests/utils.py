@@ -7,7 +7,7 @@ class FakeLexer(object):
 
     def next(self):
         try:
-            return self.tokens.next()
+            return next(self.tokens)
         except StopIteration:
             return None
 

@@ -7,6 +7,17 @@ from rply.parser import LRParser
 from rply.utils import IdentityDict
 
 
+LARGE_VALUE = sys.maxsize
+
+
+if sys.version_info >= (3,):
+    def iteritems(d):
+        return d.items()
+else:
+    def iteritems(d):
+        return d.iteritems()
+
+
 class ParserGenerator(object):
     def __init__(self, tokens, precedence=[]):
         self.tokens = tokens
@@ -81,11 +92,11 @@ def traverse(x, N, stack, F, X, R, FP):
             if a not in F[x]:
                 F[x].append(a)
     if N[x] == d:
-        N[stack[-1]] = sys.maxint
+        N[stack[-1]] = LARGE_VALUE
         F[stack[-1]] = F[x]
         element = stack.pop()
         while element != x:
-            N[stack[-1]] = sys.maxint
+            N[stack[-1]] = LARGE_VALUE
             F[stack[-1]] = F[x]
             element = stack.pop()
 
@@ -298,7 +309,7 @@ class LRTable(object):
         return lookdict, includedict
 
     def add_lookaheads(self, lookbacks, followset):
-        for trans, lb in lookbacks.iteritems():
+        for trans, lb in iteritems(lookbacks):
             for state, p in lb:
                 if state not in p.lookaheads:
                     p.lookaheads[state] = []
