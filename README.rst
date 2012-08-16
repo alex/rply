@@ -69,3 +69,9 @@ your project.
 If you don't intend to use your parser from RPython, and just want a cool pure
 Python parser you can ignore all the box stuff and just return whatever you like
 from each production method.
+
+Python compatibility
+--------------------
+
+RPly is tested and known to work under Python 2.7 and 3.2. It is also valid RPython
+for PyPy checkouts from ``6c642ae7a0ea`` onwards.
