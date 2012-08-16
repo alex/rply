@@ -56,7 +56,7 @@ Then you can do:
     parser.parse(lexer)
 
 Where lexer is an object that defines a ``next()`` method that returns either
-the next token in sequence, or ``None``.
+the next token in sequence, or ``None`` if the token stream has been exhausted.
 
 Why do we have the boxes?
 -------------------------
