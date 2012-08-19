@@ -73,14 +73,12 @@ class Grammar(object):
                 if i > p.getlength():
                     lri = None
                 else:
-                    prod = p.prod[:]
-                    prod.insert(i, ".")
                     try:
-                        before = prod[i - 1]
+                        before = p.prod[i - 1]
                     except IndexError:
                         before = None
                     try:
-                        after = self.prod_names[prod[i + 1]]
+                        after = self.prod_names[p.prod[i]]
                     except (IndexError, KeyError):
                         after = []
                     lri = LRItem(p, i, before, after)
