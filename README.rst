@@ -78,7 +78,9 @@ raised, it has a method ``getsourcepos()``, which returns an
 ``rply.token.SourcePosition`` object.
 
 You may also provide an error handler, which, at the moment, must raise an
-exception. It receives the ``Token`` object that the parser errored on::
+exception. It receives the ``Token`` object that the parser errored on.
+
+.. code:: python
 
     pg = ParserGenerator(...)
 
