@@ -13,6 +13,12 @@ class TestIdentityDict(object):
         d[x] = "test"
         assert d[x] == "test"
 
+    def test_len(self):
+        d = IdentityDict()
+        d[[]] = 3
+        d[3] = 5
+        assert len(d) == 2
+
     def test_iter(self):
         d = IdentityDict()
         x = []

@@ -19,7 +19,7 @@ class IdentityDict(MutableMapping):
         raise NotImplementedError
 
     def __len__(self):
-        raise NotImplementedError
+        return len(self._contents)
 
     def __iter__(self):
         for key, _, _ in self._contents.itervalues():
