@@ -18,7 +18,7 @@ class Grammar(object):
         self.prod_names = {}
         # A dictionary mapping the names of terminals to a list of the rules
         # where they are used
-        self.terminals = {t: [] for t in terminals}
+        self.terminals = dict((t, []) for t in terminals)
         # A dictionary mapping names of nonterminals to a list of rule numbers
         # where they are used
         self.nonterminals = {}
@@ -57,7 +57,7 @@ class Grammar(object):
     def set_precedence(self, term, assoc, level):
         if term in self.precedence:
             raise ParserGeneratorError("Precedence already specified for %s" % term)
-        if assoc not in {"left", "right", "nonassoc"}:
+        if assoc not in ["left", "right", "nonassoc"]:
             raise ParserGeneratorError("Precedence must be one of left, right, nonassoc; not %s" % assoc)
         self.precedence[term] = (assoc, level)
 
