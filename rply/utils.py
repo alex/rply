@@ -1,3 +1,4 @@
+import sys
 from collections import MutableMapping
 
 
@@ -23,3 +24,10 @@ class IdentityDict(MutableMapping):
     def __iter__(self):
         for key, _, _ in self._contents.itervalues():
             yield key
+
+if sys.version_info >= (3,):
+    def iteritems(d):
+        return d.items()
+else:
+    def iteritems(d):
+        return d.iteritems()

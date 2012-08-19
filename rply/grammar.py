@@ -1,4 +1,5 @@
 from rply.errors import ParserGeneratorError
+from rply.utils import iteritems
 
 
 def rightmost_terminal(symbols, terminals):
@@ -17,7 +18,7 @@ class Grammar(object):
         self.prod_names = {}
         # A dictionary mapping the names of terminals to a list of the rules
         # where they are used
-        self.terminals = dict.fromkeys(terminals, [])
+        self.terminals = {t: [] for t in terminals}
         # A dictionary mapping names of nonterminals to a list of rule numbers
         # where they are used
         self.nonterminals = {}
@@ -59,6 +60,9 @@ class Grammar(object):
         self.productions[0] = Production(0, "S'", [start], ("right", 0), None)
         self.nonterminals[start].append(0)
         self.start = start
+
+    def unused_terminals(self):
+        return [t for t, p in iteritems(self.terminals) if not p]
 
     def build_lritems(self):
         """

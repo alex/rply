@@ -4,18 +4,10 @@ import warnings
 from rply.errors import ParserGeneratorError, ParserGeneratorWarning
 from rply.grammar import Grammar
 from rply.parser import LRParser
-from rply.utils import IdentityDict
+from rply.utils import IdentityDict, iteritems
 
 
 LARGE_VALUE = sys.maxsize
-
-
-if sys.version_info >= (3,):
-    def iteritems(d):
-        return d.items()
-else:
-    def iteritems(d):
-        return d.iteritems()
 
 
 class ParserGenerator(object):
@@ -52,6 +44,14 @@ class ParserGenerator(object):
             g.add_production(prod_name, syms, func, precedence)
 
         g.set_start()
+
+        for unused_term in g.unused_terminals():
+            warnings.warn(
+                "Token %r is unused" % unused_term,
+                ParserGeneratorWarning,
+                stacklevel=2
+            )
+
         g.build_lritems()
         g.compute_first()
         g.compute_follow()

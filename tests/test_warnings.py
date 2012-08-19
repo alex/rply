@@ -63,3 +63,13 @@ class TestWarnings(BaseTests):
 
         with self.assert_warns(ParserGeneratorWarning, "1 reduce/reduce conflict"):
             pg.build()
+
+    def test_unused_tokens(self):
+        pg = ParserGenerator(["VALUE", "OTHER"])
+
+        @pg.production("main : VALUE")
+        def main(p):
+            return p[0]
+
+        with self.assert_warns(ParserGeneratorWarning, "Token 'OTHER' is unused"):
+            pg.build()
