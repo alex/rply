@@ -91,5 +91,5 @@ exception. It receives the ``Token`` object that the parser errored on.
 Python compatibility
 --------------------
 
-RPly is tested and known to work under Python 2.7 and 3.2. It is also valid
-RPython for PyPy checkouts from ``6c642ae7a0ea`` onwards.
+RPly is tested and known to work under Python 2.6, 2.7 and 3.2. It is also
+valid RPython for PyPy checkouts from ``6c642ae7a0ea`` onwards.
