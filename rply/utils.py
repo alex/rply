@@ -22,12 +22,18 @@ class IdentityDict(MutableMapping):
         return len(self._contents)
 
     def __iter__(self):
-        for key, _, _ in self._contents.itervalues():
+        for key, _, _ in itervalues(self._contents):
             yield key
 
 if sys.version_info >= (3,):
+    def itervalues(d):
+        return d.values()
+
     def iteritems(d):
         return d.items()
 else:
+    def itervalues(d):
+        return d.itervalues()
+
     def iteritems(d):
         return d.iteritems()
