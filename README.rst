@@ -67,11 +67,27 @@ that everything is statically typed. You can write whatever boxes you need for
 your project.
 
 If you don't intend to use your parser from RPython, and just want a cool pure
-Python parser you can ignore all the box stuff and just return whatever you like
-from each production method.
+Python parser you can ignore all the box stuff and just return whatever you
+like from each production method.
+
+Error handling
+--------------
+
+By default, when a parsing error is encountered, an ``rply.ParsingError`` is
+raised, it has a method ``getsourcepos()``, which returns an
+``rply.token.SourcePosition`` object.
+
+You may also provide an error handler, which, at the moment, must raise an
+exception. It receives the ``Token`` object that the parser errored on::
+
+    pg = ParserGenerator(...)
+
+    @pg.error
+    def error_handler(token):
+        raise ValueError("Ran into a %s where it wasn't expected" % token.gettokentype())
 
 Python compatibility
 --------------------
 
-RPly is tested and known to work under Python 2.7 and 3.2. It is also valid RPython
-for PyPy checkouts from ``6c642ae7a0ea`` onwards.
+RPly is tested and known to work under Python 2.7 and 3.2. It is also valid
+RPython for PyPy checkouts from ``6c642ae7a0ea`` onwards.
