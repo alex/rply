@@ -51,6 +51,12 @@ class ParserGenerator(object):
                 ParserGeneratorWarning,
                 stacklevel=2
             )
+        for unused_prod in g.unused_productions():
+            warnings.warn(
+                "Production %r is not reachable" % unused_prod,
+                ParserGeneratorWarning,
+                stacklevel=2
+            )
 
         g.build_lritems()
         g.compute_first()

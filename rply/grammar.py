@@ -62,7 +62,10 @@ class Grammar(object):
         self.start = start
 
     def unused_terminals(self):
-        return [t for t, p in iteritems(self.terminals) if not p]
+        return [t for t, prods in iteritems(self.terminals) if not prods]
+
+    def unused_productions(self):
+        return [p for p, prods in iteritems(self.nonterminals) if not prods]
 
     def build_lritems(self):
         """
