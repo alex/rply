@@ -23,6 +23,7 @@ class ParserGenerator(object):
         self.tokens = tokens
         self.productions = []
         self.precedence = precedence
+        self.error_handler = None
 
     def production(self, rule, precedence=None):
         parts = rule.split()
@@ -35,6 +36,10 @@ class ParserGenerator(object):
             self.productions.append((production_name, syms, func, precedence))
             return func
         return inner
+
+    def error(self, func):
+        self.error_handler = func
+        return func
 
     def build(self):
         g = Grammar(self.tokens)
@@ -64,7 +69,7 @@ class ParserGenerator(object):
                 ParserGeneratorWarning,
                 stacklevel=2,
             )
-        return LRParser(table)
+        return LRParser(table, self.error_handler)
 
 
 def digraph(X, R, FP):

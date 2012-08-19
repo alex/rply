@@ -2,8 +2,9 @@ from rply.errors import ParsingError
 
 
 class LRParser(object):
-    def __init__(self, lr_table):
+    def __init__(self, lr_table, error_handler):
         self.lr_table = lr_table
+        self.error_handler = error_handler
 
     def parse(self, tokenizer):
         from rply.token import Token
@@ -60,4 +61,8 @@ class LRParser(object):
                     return n
             else:
                 # TODO: actual error handling here
-                raise ParsingError(lookahead.getsourcepos())
+                if self.error_handler is not None:
+                    self.error_handler(lookahead)
+                    raise AssertionError("For now, error_handler must raise.")
+                else:
+                    raise ParsingError(lookahead.getsourcepos())
