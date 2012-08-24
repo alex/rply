@@ -1,4 +1,5 @@
 from rply.errors import ParserGeneratorError
+from rply.utils import iteritems
 
 
 def rightmost_terminal(symbols, terminals):
@@ -17,7 +18,7 @@ class Grammar(object):
         self.prod_names = {}
         # A dictionary mapping the names of terminals to a list of the rules
         # where they are used
-        self.terminals = dict.fromkeys(terminals, [])
+        self.terminals = dict((t, []) for t in terminals)
         # A dictionary mapping names of nonterminals to a list of rule numbers
         # where they are used
         self.nonterminals = {}
@@ -28,10 +29,16 @@ class Grammar(object):
 
     def add_production(self, prod_name, syms, func, precedence):
         if prod_name in self.terminals:
-            raise ParserGeneratorError("Illegal rule name %s" % prod_name)
+            raise ParserGeneratorError("Illegal rule name %r" % prod_name)
 
-        precname = precedence if precedence is not None else rightmost_terminal(syms, self.terminals)
-        prod_prec = self.precedence.get(precname, ("right", 0))
+        if precedence is None:
+            precname = rightmost_terminal(syms, self.terminals)
+            prod_prec = self.precedence.get(precname, ("right", 0))
+        else:
+            try:
+                prod_prec = self.precedence[precedence]
+            except KeyError:
+                raise ParserGeneratorError("Precedence %r doesn't exist" % precedence)
 
         pnumber = len(self.productions)
         self.nonterminals.setdefault(prod_name, [])
@@ -50,7 +57,7 @@ class Grammar(object):
     def set_precedence(self, term, assoc, level):
         if term in self.precedence:
             raise ParserGeneratorError("Precedence already specified for %s" % term)
-        if assoc not in {"left", "right", "nonassoc"}:
+        if assoc not in ["left", "right", "nonassoc"]:
             raise ParserGeneratorError("Precedence must be one of left, right, nonassoc; not %s" % assoc)
         self.precedence[term] = (assoc, level)
 
@@ -59,6 +66,12 @@ class Grammar(object):
         self.productions[0] = Production(0, "S'", [start], ("right", 0), None)
         self.nonterminals[start].append(0)
         self.start = start
+
+    def unused_terminals(self):
+        return [t for t, prods in iteritems(self.terminals) if not prods]
+
+    def unused_productions(self):
+        return [p for p, prods in iteritems(self.nonterminals) if not prods]
 
     def build_lritems(self):
         """
@@ -73,14 +86,12 @@ class Grammar(object):
                 if i > p.getlength():
                     lri = None
                 else:
-                    prod = p.prod[:]
-                    prod.insert(i, ".")
                     try:
-                        before = prod[i - 1]
+                        before = p.prod[i - 1]
                     except IndexError:
                         before = None
                     try:
-                        after = self.prod_names[prod[i + 1]]
+                        after = self.prod_names[p.prod[i]]
                     except (IndexError, KeyError):
                         after = []
                     lri = LRItem(p, i, before, after)

@@ -4,7 +4,10 @@ import warnings
 from rply.errors import ParserGeneratorError, ParserGeneratorWarning
 from rply.grammar import Grammar
 from rply.parser import LRParser
-from rply.utils import IdentityDict
+from rply.utils import IdentityDict, iteritems
+
+
+LARGE_VALUE = sys.maxsize
 
 
 class ParserGenerator(object):
@@ -12,6 +15,7 @@ class ParserGenerator(object):
         self.tokens = tokens
         self.productions = []
         self.precedence = precedence
+        self.error_handler = None
 
     def production(self, rule, precedence=None):
         parts = rule.split()
@@ -25,6 +29,10 @@ class ParserGenerator(object):
             return func
         return inner
 
+    def error(self, func):
+        self.error_handler = func
+        return func
+
     def build(self):
         g = Grammar(self.tokens)
 
@@ -36,6 +44,20 @@ class ParserGenerator(object):
             g.add_production(prod_name, syms, func, precedence)
 
         g.set_start()
+
+        for unused_term in g.unused_terminals():
+            warnings.warn(
+                "Token %r is unused" % unused_term,
+                ParserGeneratorWarning,
+                stacklevel=2
+            )
+        for unused_prod in g.unused_productions():
+            warnings.warn(
+                "Production %r is not reachable" % unused_prod,
+                ParserGeneratorWarning,
+                stacklevel=2
+            )
+
         g.build_lritems()
         g.compute_first()
         g.compute_follow()
@@ -53,7 +75,7 @@ class ParserGenerator(object):
                 ParserGeneratorWarning,
                 stacklevel=2,
             )
-        return LRParser(table)
+        return LRParser(table, self.error_handler)
 
 
 def digraph(X, R, FP):
@@ -81,11 +103,11 @@ def traverse(x, N, stack, F, X, R, FP):
             if a not in F[x]:
                 F[x].append(a)
     if N[x] == d:
-        N[stack[-1]] = sys.maxint
+        N[stack[-1]] = LARGE_VALUE
         F[stack[-1]] = F[x]
         element = stack.pop()
         while element != x:
-            N[stack[-1]] = sys.maxint
+            N[stack[-1]] = LARGE_VALUE
             F[stack[-1]] = F[x]
             element = stack.pop()
 
@@ -298,7 +320,7 @@ class LRTable(object):
         return lookdict, includedict
 
     def add_lookaheads(self, lookbacks, followset):
-        for trans, lb in lookbacks.iteritems():
+        for trans, lb in iteritems(lookbacks):
             for state, p in lb:
                 if state not in p.lookaheads:
                     p.lookaheads[state] = []

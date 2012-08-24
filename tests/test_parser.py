@@ -157,3 +157,26 @@ class TestBasic(BaseTests):
             ]))
 
         assert exc_info.value.getsourcepos().lineno == 10
+
+    def test_parse_error_handler(self):
+        pg = ParserGenerator(["VALUE"])
+
+        @pg.production("main : VALUE")
+        def main(p):
+            return p[0]
+
+        @pg.error
+        def error_handler(token):
+            raise ValueError(token)
+
+        parser = pg.build()
+
+        token = Token("VALUE", "world")
+
+        with py.test.raises(ValueError) as exc_info:
+            parser.parse(FakeLexer([
+                Token("VALUE", "hello"),
+                token
+            ]))
+
+        assert exc_info.value.args[0] is token

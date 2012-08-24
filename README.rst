@@ -56,7 +56,7 @@ Then you can do:
     parser.parse(lexer)
 
 Where lexer is an object that defines a ``next()`` method that returns either
-the next token in sequence, or ``None``.
+the next token in sequence, or ``None`` if the token stream has been exhausted.
 
 Why do we have the boxes?
 -------------------------
@@ -65,3 +65,31 @@ In RPython, like other statically typed languages, a variable must have a
 specific type, we take advantage of polymorphism to keep values in a box so
 that everything is statically typed. You can write whatever boxes you need for
 your project.
+
+If you don't intend to use your parser from RPython, and just want a cool pure
+Python parser you can ignore all the box stuff and just return whatever you
+like from each production method.
+
+Error handling
+--------------
+
+By default, when a parsing error is encountered, an ``rply.ParsingError`` is
+raised, it has a method ``getsourcepos()``, which returns an
+``rply.token.SourcePosition`` object.
+
+You may also provide an error handler, which, at the moment, must raise an
+exception. It receives the ``Token`` object that the parser errored on.
+
+.. code:: python
+
+    pg = ParserGenerator(...)
+
+    @pg.error
+    def error_handler(token):
+        raise ValueError("Ran into a %s where it wasn't expected" % token.gettokentype())
+
+Python compatibility
+--------------------
+
+RPly is tested and known to work under Python 2.6, 2.7, 3.1, and 3.2. It is
+also valid RPython for PyPy checkouts from ``6c642ae7a0ea`` onwards.
