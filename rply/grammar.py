@@ -173,6 +173,9 @@ class Production(object):
         self.lr0_added = 0
         self.reduced = 0
 
+    def __repr__(self):
+        return "Production(%s -> %s)" % (self.name, " ".join(self.prod))
+
     def getlength(self):
         return len(self.prod)
 
@@ -189,8 +192,8 @@ class LRItem(object):
         self.lr_before = before
         self.lr_after = after
 
-    def getlength(self):
-        return len(self.prod)
-
     def __repr__(self):
         return "LRItem(%s -> %s)" % (self.name, " ".join(self.prod))
+
+    def getlength(self):
+        return len(self.prod)
