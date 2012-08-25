@@ -11,7 +11,6 @@ class LRParser(object):
 
         lookahead = None
         lookaheadstack = []
-        error_count = 0
 
         statestack = [0]
         symstack = [Token("$end", None)]
@@ -35,8 +34,6 @@ class LRParser(object):
                     state = t
                     symstack.append(lookahead)
                     lookahead = None
-                    if error_count:
-                        error_count -= 1
                     continue
                 elif t < 0:
                     # reduce a symbol on the stack and emit a production
