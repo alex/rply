@@ -1,6 +1,5 @@
 class BaseBox(object):
-    def gettokentype(self):
-        raise NotImplementedError
+    pass
 
 
 class Token(BaseBox):
