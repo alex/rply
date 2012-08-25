@@ -24,3 +24,8 @@ class BoxInt(BaseBox):
 
     def getint(self):
         return self.value
+
+
+class ParserState(object):
+    def __init__(self):
+        self.count = 0

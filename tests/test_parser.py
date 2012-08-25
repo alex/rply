@@ -7,7 +7,7 @@ from rply.token import SourcePosition
 from rply.errors import ParserGeneratorWarning
 
 from .base import BaseTests
-from .utils import FakeLexer, BoxInt
+from .utils import FakeLexer, BoxInt, ParserState
 
 
 class TestBasic(BaseTests):
@@ -180,3 +180,56 @@ class TestBasic(BaseTests):
             ]))
 
         assert exc_info.value.args[0] is token
+
+    def test_state(self):
+        pg = ParserGenerator(["NUMBER", "PLUS"], state_cls=ParserState, precedence=[
+            ("left", ["PLUS"]),
+        ])
+
+        @pg.production("main : expression")
+        def main(state, p):
+            state.count += 1
+            return p[0]
+
+        @pg.production("expression : expression PLUS expression")
+        def expression_plus(state, p):
+            state.count += 1
+            return BoxInt(p[0].getint() + p[2].getint())
+
+        @pg.production("expression : NUMBER")
+        def expression_number(state, p):
+            state.count += 1
+            return BoxInt(int(p[0].getstr()))
+
+        parser = pg.build()
+
+        state = ParserState()
+        assert parser.parse(FakeLexer([
+            Token("NUMBER", "10"),
+            Token("PLUS", "+"),
+            Token("NUMBER", "12"),
+            Token("PLUS", "+"),
+            Token("NUMBER", "-2"),
+        ]), state=state) == BoxInt(20)
+        assert state.count == 6
+
+    def test_error_handler_state(self):
+        pg = ParserGenerator([], state_cls=ParserState)
+
+        @pg.production("main :")
+        def main(state, p):
+            pass
+
+        @pg.error
+        def error(state, token):
+            raise ValueError(state, token)
+
+        parser = pg.build()
+
+        state = ParserState()
+        token = Token("VALUE", "")
+        with py.test.raises(ValueError) as exc_info:
+            parser.parse(FakeLexer([token]), state=state)
+
+        assert exc_info.value.args[0] is state
+        assert exc_info.value.args[1] is token
