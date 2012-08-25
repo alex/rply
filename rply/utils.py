@@ -16,7 +16,11 @@ class IdentityDict(MutableMapping):
         self._contents[id(key)] = key, value, idx
 
     def __delitem__(self, key):
-        raise NotImplementedError
+        del self._contents[id(key)]
+        for idx, obj in enumerate(self._keepalive):
+            if obj is key:
+                del self._keepalive[idx]
+                break
 
     def __len__(self):
         return len(self._contents)

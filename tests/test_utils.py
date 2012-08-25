@@ -1,5 +1,7 @@
 from operator import itemgetter
 
+import py
+
 from rply.utils import IdentityDict
 
 
@@ -12,6 +14,14 @@ class TestIdentityDict(object):
         x = []
         d[x] = "test"
         assert d[x] == "test"
+
+    def test_delitem(self):
+        d = IdentityDict()
+        x = []
+        d[x] = "hello"
+        del d[x]
+        with py.test.raises(KeyError):
+            d[x]
 
     def test_len(self):
         d = IdentityDict()
