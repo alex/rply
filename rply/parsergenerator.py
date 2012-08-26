@@ -11,9 +11,8 @@ LARGE_VALUE = sys.maxsize
 
 
 class ParserGenerator(object):
-    def __init__(self, tokens, state_cls=None, precedence=[]):
+    def __init__(self, tokens, precedence=[]):
         self.tokens = tokens
-        self.state_cls = state_cls
         self.productions = []
         self.precedence = precedence
         self.error_handler = None
@@ -76,7 +75,7 @@ class ParserGenerator(object):
                 ParserGeneratorWarning,
                 stacklevel=2,
             )
-        return LRParser(table, self.error_handler, self.state_cls)
+        return LRParser(table, self.error_handler)
 
 
 def digraph(X, R, FP):

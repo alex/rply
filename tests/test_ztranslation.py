@@ -44,7 +44,7 @@ class TestTranslation(BaseTests):
         assert self.run(f, [12]) == 24
 
     def test_state(self):
-        pg = ParserGenerator(["NUMBER", "PLUS"], state_cls=ParserState, precedence=[
+        pg = ParserGenerator(["NUMBER", "PLUS"], precedence=[
             ("left", ["PLUS"]),
         ])
 

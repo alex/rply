@@ -182,7 +182,7 @@ class TestBasic(BaseTests):
         assert exc_info.value.args[0] is token
 
     def test_state(self):
-        pg = ParserGenerator(["NUMBER", "PLUS"], state_cls=ParserState, precedence=[
+        pg = ParserGenerator(["NUMBER", "PLUS"], precedence=[
             ("left", ["PLUS"]),
         ])
 
@@ -214,7 +214,7 @@ class TestBasic(BaseTests):
         assert state.count == 6
 
     def test_error_handler_state(self):
-        pg = ParserGenerator([], state_cls=ParserState)
+        pg = ParserGenerator([])
 
         @pg.production("main :")
         def main(state, p):

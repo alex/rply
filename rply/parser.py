@@ -2,10 +2,9 @@ from rply.errors import ParsingError
 
 
 class LRParser(object):
-    def __init__(self, lr_table, error_handler, state_cls):
+    def __init__(self, lr_table, error_handler):
         self.lr_table = lr_table
         self.error_handler = error_handler
-        self.state_cls = state_cls
 
     def parse(self, tokenizer, state=None):
         from rply.token import Token
@@ -49,7 +48,7 @@ class LRParser(object):
                     assert start >= 0
                     del symstack[start:]
                     del statestack[start:]
-                    if self.state_cls is None:
+                    if state is None:
                         value = p.func(targ)
                     else:
                         value = p.func(state, targ)
@@ -63,7 +62,7 @@ class LRParser(object):
             else:
                 # TODO: actual error handling here
                 if self.error_handler is not None:
-                    if self.state_cls is None:
+                    if state is None:
                         self.error_handler(lookahead)
                     else:
                         self.error_handler(state, lookahead)
