@@ -132,7 +132,8 @@ class TestBasic(BaseTests):
         def expr_number(p):
             return BoxInt(int(p[0].getstr()))
 
-        parser = pg.build()
+        with self.assert_warns(ParserGeneratorWarning, "1 shift/reduce conflict"):
+            parser = pg.build()
 
         assert parser.parse(FakeLexer([
             Token("MINUS", "-"),

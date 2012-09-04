@@ -1,7 +1,7 @@
 import py
 
 from rply import ParserGenerator
-from rply.errors import ParserGeneratorError, ParserGeneratorWarning
+from rply.errors import ParserGeneratorError
 
 from .base import BaseTests
 
@@ -86,3 +86,16 @@ class TestParserGenerator(BaseTests):
 
         with py.test.raises(ParserGeneratorError):
             pg.build()
+
+    def test_error_symbol(self):
+        pg = ParserGenerator(["VALUE"])
+
+        @pg.production("main : VALUE")
+        def main(p):
+            pass
+
+        @pg.production("main : error")
+        def main_error(p):
+            pass
+
+        pg.build()
