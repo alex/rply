@@ -326,7 +326,7 @@ class LRTable(object):
                 laheads = p.lookaheads.setdefault(state, [])
                 for a in f:
                     if a not in laheads:
-                        p.lookaheads[state].append(a)
+                        laheads.append(a)
 
     def build_table(self):
         C = self.lr0_items()
