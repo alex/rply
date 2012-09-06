@@ -141,8 +141,7 @@ class LRTable(object):
 
             asyms = set()
             for ii in I:
-                for s in ii.unique_syms:
-                    asyms.add(s)
+                asyms.update(ii.unique_syms)
             for x in asyms:
                 g = self.lr0_goto(I, x)
                 if not g:
