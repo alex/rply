@@ -322,11 +322,10 @@ class LRTable(object):
     def add_lookaheads(self, lookbacks, followset):
         for trans, lb in iteritems(lookbacks):
             for state, p in lb:
-                if state not in p.lookaheads:
-                    p.lookaheads[state] = []
                 f = followset.get(trans, [])
+                laheads = p.lookaheads.setdefault(state, [])
                 for a in f:
-                    if a not in p.lookaheads[state]:
+                    if a not in laheads:
                         p.lookaheads[state].append(a)
 
     def build_table(self):
