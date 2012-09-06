@@ -15,7 +15,7 @@ Basic API:
     from rply import ParserGenerator
     from rply.token import BaseBox
 
-    # This is a list of the token names
+    # This is a list of the token names.
     pg = ParserGenerator(["NUMBER", "PLUS", "MINUS"])
 
     @pg.production("main : expr")
