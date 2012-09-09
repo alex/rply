@@ -42,8 +42,7 @@ class LRParser(object):
                     plen = p.getlength()
                     start = len(symstack) + (-plen - 1)
                     assert start >= 0
-                    targ = symstack[start:]
-                    del targ[0]
+                    targ = symstack[start + 1:]
                     start = len(symstack) + (-plen)
                     assert start >= 0
                     del symstack[start:]
