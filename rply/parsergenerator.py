@@ -332,8 +332,7 @@ class LRTable(object):
 
         self.add_lalr_lookaheads(C)
 
-        st = 0
-        for I in C:
+        for st, I in enumerate(C):
             st_action = {}
             st_actionp = {}
             st_goto = {}
@@ -424,4 +423,3 @@ class LRTable(object):
 
             self.lr_action[st] = st_action
             self.lr_goto[st] = st_goto
-            st += 1
