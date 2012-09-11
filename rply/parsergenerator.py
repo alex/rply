@@ -116,8 +116,6 @@ class LRTable(object):
     def __init__(self, grammar):
         self.grammar = grammar
 
-        self.lr_action = {}
-        self.lr_goto = {}
         self._lr_goto_cache = IdentityDict()
         self._lr_other_goto_cache = {}
         self.lr0_cidhash = IdentityDict()
@@ -332,6 +330,8 @@ class LRTable(object):
 
         self.add_lalr_lookaheads(C)
 
+        self.lr_action = [None] * len(C)
+        self.lr_goto = [None] * len(C)
         for st, I in enumerate(C):
             st_action = {}
             st_actionp = {}
@@ -423,3 +423,9 @@ class LRTable(object):
 
             self.lr_action[st] = st_action
             self.lr_goto[st] = st_goto
+
+        self.default_reductions = [0] * len(self.lr_action)
+        for state, actions in enumerate(self.lr_action):
+            actions = set(actions.itervalues())
+            if len(actions) == 1 and next(iter(actions)) < 0:
+                self.default_reductions[state] = next(iter(actions))

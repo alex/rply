@@ -12,6 +12,21 @@ class FakeLexer(object):
             return None
 
 
+class RecordingLexer(FakeLexer):
+    def __init__(self, record, tokens):
+        super(RecordingLexer, self).__init__(tokens)
+        self.record = record
+
+    def next(self):
+        token = super(RecordingLexer, self).next()
+        if token is None:
+            s = "None"
+        else:
+            s = token.gettokentype()
+        self.record.append("token:%s" % s)
+        return token
+
+
 class BoxInt(BaseBox):
     def __init__(self, value):
         self.value = value

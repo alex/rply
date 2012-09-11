@@ -17,6 +17,11 @@ class LRParser(object):
 
         current_state = 0
         while True:
+            if self.lr_table.default_reductions[current_state]:
+                t = self.lr_table.default_reductions[current_state]
+                current_state = self._reduce_production(t, symstack, statestack, state)
+                continue
+
             if lookahead is None:
                 if lookaheadstack:
                     lookahead = lookaheadstack.pop()
@@ -36,24 +41,7 @@ class LRParser(object):
                     lookahead = None
                     continue
                 elif t < 0:
-                    # reduce a symbol on the stack and emit a production
-                    p = self.lr_table.grammar.productions[-t]
-                    pname = p.name
-                    plen = p.getlength()
-                    start = len(symstack) + (-plen - 1)
-                    assert start >= 0
-                    targ = symstack[start + 1:]
-                    start = len(symstack) + (-plen)
-                    assert start >= 0
-                    del symstack[start:]
-                    del statestack[start:]
-                    if state is None:
-                        value = p.func(targ)
-                    else:
-                        value = p.func(state, targ)
-                    symstack.append(value)
-                    current_state = self.lr_table.lr_goto[statestack[-1]][pname]
-                    statestack.append(current_state)
+                    current_state = self._reduce_production(t, symstack, statestack, state)
                     continue
                 else:
                     n = symstack[-1]
@@ -68,3 +56,24 @@ class LRParser(object):
                     raise AssertionError("For now, error_handler must raise.")
                 else:
                     raise ParsingError(lookahead.getsourcepos())
+
+    def _reduce_production(self, t, symstack, statestack, state):
+        # reduce a symbol on the stack and emit a production
+        p = self.lr_table.grammar.productions[-t]
+        pname = p.name
+        plen = p.getlength()
+        start = len(symstack) + (-plen - 1)
+        assert start >= 0
+        targ = symstack[start + 1:]
+        start = len(symstack) + (-plen)
+        assert start >= 0
+        del symstack[start:]
+        del statestack[start:]
+        if state is None:
+            value = p.func(targ)
+        else:
+            value = p.func(state, targ)
+        symstack.append(value)
+        current_state = self.lr_table.lr_goto[statestack[-1]][pname]
+        statestack.append(current_state)
+        return current_state

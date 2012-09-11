@@ -16,11 +16,11 @@ class TestParserGenerator(BaseTests):
 
         parser = pg.build()
 
-        assert parser.lr_table.lr_action == {
-            0: {"VALUE": 2},
-            1: {"$end": 0},
-            2: {"$end": -1},
-        }
+        assert parser.lr_table.lr_action == [
+            {"VALUE": 2},
+            {"$end": 0},
+            {"$end": -1},
+        ]
 
     def test_empty_production(self):
         pg = ParserGenerator(["VALUE"])
@@ -38,13 +38,13 @@ class TestParserGenerator(BaseTests):
             return []
 
         parser = pg.build()
-        assert parser.lr_table.lr_action == {
-            0: {"$end": -3, "VALUE": 3},
-            1: {"$end": 0},
-            2: {"$end": -1},
-            3: {"$end": -3, "VALUE": 3},
-            4: {"$end": -2},
-        }
+        assert parser.lr_table.lr_action == [
+            {"$end": -3, "VALUE": 3},
+            {"$end": 0},
+            {"$end": -1},
+            {"$end": -3, "VALUE": 3},
+            {"$end": -2},
+        ]
 
     def test_production_syntax_error(self):
         pg = ParserGenerator([])

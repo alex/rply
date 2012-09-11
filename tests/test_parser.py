@@ -7,7 +7,7 @@ from rply.token import SourcePosition
 from rply.errors import ParserGeneratorWarning
 
 from .base import BaseTests
-from .utils import FakeLexer, BoxInt, ParserState
+from .utils import FakeLexer, RecordingLexer, BoxInt, ParserState
 
 
 class TestBasic(BaseTests):
@@ -234,3 +234,47 @@ class TestBasic(BaseTests):
 
         assert exc_info.value.args[0] is state
         assert exc_info.value.args[1] is token
+
+    def test_default_reductions(self):
+        pg = ParserGenerator(["INTEGER_START", "INTEGER_VALUE", "COMPARE"], precedence=[
+            ("nonassoc", ["COMPARE"])
+        ])
+        record = []
+
+        @pg.production("main : expr")
+        def main(p):
+            record.append("main")
+            return p[0]
+
+        @pg.production("expr : expr COMPARE expr")
+        def expr_compare(p):
+            record.append("expr:compare")
+            return BoxInt(p[0].getint() - p[2].getint())
+
+        @pg.production("expr : INTEGER_START INTEGER_VALUE")
+        def expr_int(p):
+            record.append("expr:int")
+            return BoxInt(int(p[1].getstr()))
+
+        parser = pg.build()
+
+        assert parser.parse(RecordingLexer(record, [
+            Token("INTEGER_START", ""),
+            Token("INTEGER_VALUE", "10"),
+            Token("COMPARE", "-"),
+            Token("INTEGER_START", ""),
+            Token("INTEGER_VALUE", "5")
+        ])) == BoxInt(5)
+
+        assert record == [
+            "token:INTEGER_START",
+            "token:INTEGER_VALUE",
+            "expr:int",
+            "token:COMPARE",
+            "token:INTEGER_START",
+            "token:INTEGER_VALUE",
+            "expr:int",
+            "token:None",
+            "expr:compare",
+            "main",
+        ]
