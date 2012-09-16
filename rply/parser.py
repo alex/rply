@@ -55,7 +55,7 @@ class LRParser(object):
                         self.error_handler(state, lookahead)
                     raise AssertionError("For now, error_handler must raise.")
                 else:
-                    raise ParsingError(lookahead.getsourcepos())
+                    raise ParsingError(None, lookahead.getsourcepos())
 
     def _reduce_production(self, t, symstack, statestack, state):
         # reduce a symbol on the stack and emit a production
