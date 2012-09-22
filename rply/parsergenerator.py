@@ -4,7 +4,7 @@ import warnings
 from rply.errors import ParserGeneratorError, ParserGeneratorWarning
 from rply.grammar import Grammar
 from rply.parser import LRParser
-from rply.utils import IdentityDict, iteritems
+from rply.utils import IdentityDict, iteritems, itervalues
 
 
 LARGE_VALUE = sys.maxsize
@@ -426,6 +426,6 @@ class LRTable(object):
 
         self.default_reductions = [0] * len(self.lr_action)
         for state, actions in enumerate(self.lr_action):
-            actions = set(actions.itervalues())
+            actions = set(itervalues(actions))
             if len(actions) == 1 and next(iter(actions)) < 0:
                 self.default_reductions[state] = next(iter(actions))
