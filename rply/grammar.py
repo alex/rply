@@ -19,7 +19,7 @@ class Grammar(object):
         # A dictionary mapping the names of terminals to a list of the rules
         # where they are used
         self.terminals = dict((t, []) for t in terminals)
-        self.terminals['error'] = []
+        self.terminals["error"] = []
         # A dictionary mapping names of nonterminals to a list of rule numbers
         # where they are used
         self.nonterminals = {}
@@ -69,7 +69,7 @@ class Grammar(object):
         self.start = start
 
     def unused_terminals(self):
-        return [t for t, prods in iteritems(self.terminals) if not prods and t != 'error']
+        return [t for t, prods in iteritems(self.terminals) if not prods and t != "error"]
 
     def unused_productions(self):
         return [p for p, prods in iteritems(self.nonterminals) if not prods]

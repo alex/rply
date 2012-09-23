@@ -274,7 +274,7 @@ class TestBasic(BaseTests):
             "token:INTEGER_START",
             "token:INTEGER_VALUE",
             "expr:int",
-            "token:None",
             "expr:compare",
+            "token:None",
             "main",
         ]

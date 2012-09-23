@@ -239,9 +239,7 @@ class LRTable(object):
                                         if not slevel and not rlevel:
                                             sr_conflicts.append((st, repr(a), "reduce"))
                                         grammar.productions[p.number].reduced += 1
-                                    elif slevel == rlevel and rprec == "nonassoc":
-                                        st_action[a] = None
-                                    else:
+                                    elif not (slevel == rlevel and rprec == "nonassoc"):
                                         if not rlevel:
                                             sr_conflicts.append((st, repr(a), "shift"))
                                 elif r < 0:
@@ -283,9 +281,7 @@ class LRTable(object):
                                         st_actionp[a] = p
                                         if not rlevel:
                                             sr_conflicts.append((st, repr(a), "shift"))
-                                    elif slevel == rlevel and rprec == "nonassoc":
-                                        st_action[a] = None
-                                    else:
+                                    elif not (slevel == rlevel and rprec == "nonassoc"):
                                         if not slevel and not rlevel:
                                             sr_conflicts.append((st, repr(a), "reduce"))
                                 else:
