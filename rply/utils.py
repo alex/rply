@@ -29,6 +29,15 @@ class IdentityDict(MutableMapping):
         for key, _, _ in itervalues(self._contents):
             yield key
 
+
+class Counter(object):
+    def __init__(self):
+        self.value = 0
+
+    def incr(self):
+        self.value += 1
+
+
 if sys.version_info >= (3,):
     def itervalues(d):
         return d.values()

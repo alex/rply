@@ -1,9 +1,10 @@
 import py
 
-from rply import ParserGenerator
+from rply import ParserGenerator, Token
 from rply.errors import ParserGeneratorError
 
 from .base import BaseTests
+from .utils import FakeLexer
 
 
 class TestParserGenerator(BaseTests):
@@ -99,3 +100,19 @@ class TestParserGenerator(BaseTests):
             pass
 
         pg.build()
+
+
+class TestParserCaching(object):
+    def test_simple_caching(self):
+        pg = ParserGenerator(["VALUE"], cache_id="simple")
+
+        @pg.production("main : VALUE")
+        def main(p):
+            return p[0]
+
+        pg.build()
+        parser = pg.build()
+
+        assert parser.parse(FakeLexer([
+            Token("VALUE", "3")
+        ])) == Token("VALUE", "3")

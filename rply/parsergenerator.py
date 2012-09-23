@@ -1,20 +1,32 @@
+import os
+import hashlib
+import json
+import random
+import string
 import sys
+import tempfile
 import warnings
 
 from rply.errors import ParserGeneratorError, ParserGeneratorWarning
 from rply.grammar import Grammar
 from rply.parser import LRParser
-from rply.utils import IdentityDict, iteritems, itervalues
+from rply.utils import IdentityDict, Counter, iteritems, itervalues
 
 
 LARGE_VALUE = sys.maxsize
 
 
 class ParserGenerator(object):
-    def __init__(self, tokens, precedence=[]):
+    VERSION = 1
+
+    def __init__(self, tokens, precedence=[], cache_id=None):
         self.tokens = tokens
         self.productions = []
         self.precedence = precedence
+        if cache_id is None:
+            # This ensures that we always go through the caching code.
+            cache_id = "".join(random.choice(string.letters) for _ in xrange(6))
+        self.cache_id = cache_id
         self.error_handler = None
 
     def production(self, rule, precedence=None):
@@ -32,6 +44,51 @@ class ParserGenerator(object):
     def error(self, func):
         self.error_handler = func
         return func
+
+    def compute_grammar_hash(self, g):
+        hasher = hashlib.sha1()
+        hasher.update(g.start)
+        hasher.update(json.dumps(sorted(g.terminals)))
+        for term, (assoc, level) in sorted(g.precedence.iteritems()):
+            hasher.update(term)
+            hasher.update(assoc)
+            hasher.update(str(level))
+        for p in g.productions:
+            hasher.update(p.name)
+            hasher.update(json.dumps(p.prod))
+        return hasher.hexdigest()
+
+    def serialize_table(self, table):
+        return {
+            "lr_action": table.lr_action,
+            "lr_goto": table.lr_goto,
+            "sr_conflicts": table.sr_conflicts,
+            "rr_conflicts": table.rr_conflicts,
+            "default_reductions": table.default_reductions,
+            "start": table.grammar.start,
+            "terminals": sorted(table.grammar.terminals),
+            "precedence": table.grammar.precedence,
+            "productions": [(p.name, p.prod) for p in table.grammar.productions],
+        }
+
+    def data_is_valid(self, g, data):
+        if g.start != data["start"]:
+            return False
+        if sorted(g.terminals) != data["terminals"]:
+            return False
+        if sorted(g.precedence) != sorted(data["precedence"]):
+            return False
+        for key, (assoc, level) in iteritems(g.precedence):
+            if data["precedence"][key] != [assoc, level]:
+                return False
+        if len(g.productions) != len(data["productions"]):
+            return False
+        for p, (name, prod) in zip(g.productions, data["productions"]):
+            if p.name != name:
+                return False
+            if p.prod != prod:
+                return False
+        return True
 
     def build(self):
         g = Grammar(self.tokens)
@@ -62,7 +119,20 @@ class ParserGenerator(object):
         g.compute_first()
         g.compute_follow()
 
-        table = LRTable(g)
+        cache_file = os.path.join(
+            tempfile.gettempdir(),
+            "rply-%s-%s-%s.json" % (self.VERSION, self.cache_id, self.compute_grammar_hash(g))
+        )
+        table = None
+        if os.path.exists(cache_file):
+            with open(cache_file) as f:
+                data = json.load(f)
+            if self.data_is_valid(g, data):
+                table = LRTable.from_cache(g, data)
+        if table is None:
+            table = LRTable.from_grammar(g)
+            with open(cache_file, 'w') as f:
+                json.dump(self.serialize_table(table), f)
         if table.sr_conflicts:
             warnings.warn(
                 "%d shift/reduce conflict%s" % (len(table.sr_conflicts), "s" if len(table.sr_conflicts) > 1 else ""),
@@ -113,24 +183,142 @@ def traverse(x, N, stack, F, X, R, FP):
 
 
 class LRTable(object):
-    def __init__(self, grammar):
+    def __init__(self, grammar, lr_action, lr_goto, default_reductions, sr_conflicts, rr_conflicts):
         self.grammar = grammar
+        self.lr_action = lr_action
+        self.lr_goto = lr_goto
+        self.default_reductions = default_reductions
+        self.sr_conflicts = sr_conflicts
+        self.rr_conflicts = rr_conflicts
 
-        self._lr_goto_cache = IdentityDict()
-        self._lr_other_goto_cache = {}
-        self.lr0_cidhash = IdentityDict()
+    @classmethod
+    def from_cache(cls, grammar, data):
+        return LRTable(
+            grammar,
+            data["lr_action"],
+            data["lr_goto"],
+            data["default_reductions"],
+            data["sr_conflicts"],
+            data["rr_conflicts"]
+        )
 
-        self._add_count = 0
+    @classmethod
+    def from_grammar(cls, grammar):
+        cidhash = IdentityDict()
+        goto_cache = {}
+        add_count = Counter()
+        C = cls.lr0_items(grammar, add_count, cidhash, goto_cache)
 
-        self.sr_conflicts = []
-        self.rr_conflicts = []
+        cls.add_lalr_lookaheads(grammar, C, add_count, cidhash, goto_cache)
 
-        self.build_table()
+        lr_action = [None] * len(C)
+        lr_goto = [None] * len(C)
+        sr_conflicts = []
+        rr_conflicts = []
+        for st, I in enumerate(C):
+            st_action = {}
+            st_actionp = {}
+            st_goto = {}
+            for p in I:
+                if p.getlength() == p.lr_index + 1:
+                    if p.name == "S'":
+                        # Start symbol. Accept!
+                        st_action["$end"] = 0
+                        st_actionp["$end"] = p
+                    else:
+                        laheads = p.lookaheads[st]
+                        for a in laheads:
+                            if a in st_action:
+                                r = st_action[a]
+                                if r > 0:
+                                    sprec, slevel = grammar.productions[st_actionp[a].number].prec
+                                    rprec, rlevel = grammar.precedence.get(a, ("right", 0))
+                                    if (slevel < rlevel) or (slevel == rlevel and rprec == "left"):
+                                        st_action[a] = -p.number
+                                        st_actionp[a] = p
+                                        if not slevel and not rlevel:
+                                            sr_conflicts.append((st, repr(a), "reduce"))
+                                        grammar.productions[p.number].reduced += 1
+                                    elif slevel == rlevel and rprec == "nonassoc":
+                                        st_action[a] = None
+                                    else:
+                                        if not rlevel:
+                                            sr_conflicts.append((st, repr(a), "shift"))
+                                elif r < 0:
+                                    oldp = grammar.productions[-r]
+                                    pp = grammar.productions[p.number]
+                                    if oldp.number > pp.number:
+                                        st_action[a] = -p.number
+                                        st_actionp[a] = p
+                                        chosenp, rejectp = pp, oldp
+                                        grammar.productions[p.number].reduced += 1
+                                        grammar.productions[oldp.number].reduced -= 1
+                                    else:
+                                        chosenp, rejectp = oldp, pp
+                                    rr_conflicts.append((st, repr(chosenp), repr(rejectp)))
+                                else:
+                                    raise LALRError("Unknown conflict in state %d" % st)
+                            else:
+                                st_action[a] = -p.number
+                                st_actionp[a] = p
+                                grammar.productions[p.number].reduced += 1
+                else:
+                    i = p.lr_index
+                    a = p.prod[i + 1]
+                    if a in grammar.terminals:
+                        g = cls.lr0_goto(I, a, add_count, goto_cache)
+                        j = cidhash.get(g, -1)
+                        if j >= 0:
+                            if a in st_action:
+                                r = st_action[a]
+                                if r > 0:
+                                    if r != j:
+                                        raise LALRError("Shift/shift conflict in state %d" % st)
+                                elif r < 0:
+                                    rprec, rlevel = grammar.productions[st_actionp[a].number].prec
+                                    sprec, slevel = grammar.precedence.get(a, ("right", 0))
+                                    if (slevel > rlevel) or (slevel == rlevel and rprec == "right"):
+                                        grammar.productions[st_actionp[a].number].reduced -= 1
+                                        st_action[a] = j
+                                        st_actionp[a] = p
+                                        if not rlevel:
+                                            sr_conflicts.append((st, repr(a), "shift"))
+                                    elif slevel == rlevel and rprec == "nonassoc":
+                                        st_action[a] = None
+                                    else:
+                                        if not slevel and not rlevel:
+                                            sr_conflicts.append((st, repr(a), "reduce"))
+                                else:
+                                    raise LALRError("Unknown conflict in state %d" % st)
+                            else:
+                                st_action[a] = j
+                                st_actionp[a] = p
+            nkeys = set()
+            for ii in I:
+                for s in ii.unique_syms:
+                    if s in grammar.nonterminals:
+                        nkeys.add(s)
+            for n in nkeys:
+                g = cls.lr0_goto(I, n, add_count, goto_cache)
+                j = cidhash.get(g, -1)
+                if j >= 0:
+                    st_goto[n] = j
 
-    def lr0_items(self):
-        C = [self.lr0_closure([self.grammar.productions[0].lr_next])]
+            lr_action[st] = st_action
+            lr_goto[st] = st_goto
+
+        default_reductions = [0] * len(lr_action)
+        for state, actions in enumerate(lr_action):
+            actions = set(itervalues(actions))
+            if len(actions) == 1 and next(iter(actions)) < 0:
+                default_reductions[state] = next(iter(actions))
+        return LRTable(grammar, lr_action, lr_goto, default_reductions, sr_conflicts, rr_conflicts)
+
+    @classmethod
+    def lr0_items(cls, grammar, add_count, cidhash, goto_cache):
+        C = [cls.lr0_closure([grammar.productions[0].lr_next], add_count)]
         for i, I in enumerate(C):
-            self.lr0_cidhash[I] = i
+            cidhash[I] = i
 
         i = 0
         while i < len(C):
@@ -141,17 +329,18 @@ class LRTable(object):
             for ii in I:
                 asyms.update(ii.unique_syms)
             for x in asyms:
-                g = self.lr0_goto(I, x)
+                g = cls.lr0_goto(I, x, add_count, goto_cache)
                 if not g:
                     continue
-                if g in self.lr0_cidhash:
+                if g in cidhash:
                     continue
-                self.lr0_cidhash[g] = len(C)
+                cidhash[g] = len(C)
                 C.append(g)
         return C
 
-    def lr0_closure(self, I):
-        self._add_count += 1
+    @classmethod
+    def lr0_closure(cls, I, add_count):
+        add_count.incr()
 
         J = I[:]
         added = True
@@ -159,18 +348,16 @@ class LRTable(object):
             added = False
             for j in J:
                 for x in j.lr_after:
-                    if x.lr0_added == self._add_count:
+                    if x.lr0_added == add_count.value:
                         continue
                     J.append(x.lr_next)
-                    x.lr0_added = self._add_count
+                    x.lr0_added = add_count.value
                     added = True
         return J
 
-    def lr0_goto(self, I, x):
-        if I in self._lr_goto_cache and x in self._lr_goto_cache[I]:
-            return self._lr_goto_cache[I][x]
-
-        s = self._lr_other_goto_cache.setdefault(x, IdentityDict())
+    @classmethod
+    def lr0_goto(cls, I, x, add_count, goto_cache):
+        s = goto_cache.setdefault(x, IdentityDict())
 
         gs = []
         for p in I:
@@ -185,26 +372,27 @@ class LRTable(object):
         g = s.get("$end")
         if not g:
             if gs:
-                g = self.lr0_closure(gs)
+                g = cls.lr0_closure(gs, add_count)
                 s["$end"] = g
             else:
                 s["$end"] = gs
-        self._lr_goto_cache.setdefault(I, {})[x] = g
         return g
 
-    def add_lalr_lookaheads(self, C):
-        nullable = self.compute_nullable_nonterminals()
-        trans = self.find_nonterminal_transitions(C)
-        readsets = self.compute_read_sets(C, trans, nullable)
-        lookd, included = self.compute_lookback_includes(C, trans, nullable)
-        followsets = self.compute_follow_sets(trans, readsets, included)
-        self.add_lookaheads(lookd, followsets)
+    @classmethod
+    def add_lalr_lookaheads(cls, grammar, C, add_count, cidhash, goto_cache):
+        nullable = cls.compute_nullable_nonterminals(grammar)
+        trans = cls.find_nonterminal_transitions(grammar, C)
+        readsets = cls.compute_read_sets(grammar, C, trans, nullable, add_count, cidhash, goto_cache)
+        lookd, included = cls.compute_lookback_includes(grammar, C, trans, nullable, add_count, cidhash, goto_cache)
+        followsets = cls.compute_follow_sets(trans, readsets, included)
+        cls.add_lookaheads(lookd, followsets)
 
-    def compute_nullable_nonterminals(self):
+    @classmethod
+    def compute_nullable_nonterminals(cls, grammar):
         nullable = set()
         num_nullable = 0
         while True:
-            for p in self.grammar.productions[1:]:
+            for p in grammar.productions[1:]:
                 if p.getlength() == 0:
                     nullable.add(p.name)
                     continue
@@ -218,46 +406,51 @@ class LRTable(object):
             num_nullable = len(nullable)
         return nullable
 
-    def find_nonterminal_transitions(self, C):
+    @classmethod
+    def find_nonterminal_transitions(cls, grammar, C):
         trans = []
         for idx, state in enumerate(C):
             for p in state:
                 if p.lr_index < p.getlength() - 1:
                     t = (idx, p.prod[p.lr_index + 1])
-                    if t[1] in self.grammar.nonterminals and t not in trans:
+                    if t[1] in grammar.nonterminals and t not in trans:
                         trans.append(t)
         return trans
 
-    def compute_read_sets(self, C, ntrans, nullable):
-        FP = lambda x: self.dr_relation(C, x, nullable)
-        R = lambda x: self.reads_relation(C, x, nullable)
+    @classmethod
+    def compute_read_sets(cls, grammar, C, ntrans, nullable, add_count, cidhash, goto_cache):
+        FP = lambda x: cls.dr_relation(grammar, C, x, nullable, add_count, goto_cache)
+        R = lambda x: cls.reads_relation(C, x, nullable, add_count, cidhash, goto_cache)
         return digraph(ntrans, R, FP)
 
-    def compute_follow_sets(self, ntrans, readsets, includesets):
+    @classmethod
+    def compute_follow_sets(cls, ntrans, readsets, includesets):
         FP = lambda x: readsets[x]
         R = lambda x: includesets.get(x, [])
         return digraph(ntrans, R, FP)
 
-    def dr_relation(self, C, trans, nullable):
+    @classmethod
+    def dr_relation(cls, grammar, C, trans, nullable, add_count, goto_cache):
         state, N = trans
         terms = []
 
-        g = self.lr0_goto(C[state], N)
+        g = cls.lr0_goto(C[state], N, add_count, goto_cache)
         for p in g:
             if p.lr_index < p.getlength() - 1:
                 a = p.prod[p.lr_index + 1]
-                if a in self.grammar.terminals and a not in terms:
+                if a in grammar.terminals and a not in terms:
                     terms.append(a)
-        if state == 0 and N == self.grammar.productions[0].prod[0]:
+        if state == 0 and N == grammar.productions[0].prod[0]:
             terms.append("$end")
         return terms
 
-    def reads_relation(self, C, trans, empty):
+    @classmethod
+    def reads_relation(cls, C, trans, empty, add_count, cidhash, goto_cache):
         rel = []
         state, N = trans
 
-        g = self.lr0_goto(C[state], N)
-        j = self.lr0_cidhash.get(g, -1)
+        g = cls.lr0_goto(C[state], N, add_count, goto_cache)
+        j = cidhash.get(g, -1)
         for p in g:
             if p.lr_index < p.getlength() - 1:
                 a = p.prod[p.lr_index + 1]
@@ -265,7 +458,8 @@ class LRTable(object):
                     rel.append((j, a))
         return rel
 
-    def compute_lookback_includes(self, C, trans, nullable):
+    @classmethod
+    def compute_lookback_includes(cls, grammar, C, trans, nullable, add_count, cidhash, goto_cache):
         lookdict = {}
         includedict = {}
 
@@ -287,7 +481,7 @@ class LRTable(object):
                     if (j, t) in dtrans:
                         li = lr_index + 1
                         while li < p.getlength():
-                            if p.prod[li] in self.grammar.terminals:
+                            if p.prod[li] in grammar.terminals:
                                 break
                             if p.prod[li] not in nullable:
                                 break
@@ -295,8 +489,8 @@ class LRTable(object):
                         else:
                             includes.append((j, t))
 
-                    g = self.lr0_goto(C[j], t)
-                    j = self.lr0_cidhash.get(g, -1)
+                    g = cls.lr0_goto(C[j], t, add_count, goto_cache)
+                    j = cidhash.get(g, -1)
 
                 for r in C[j]:
                     if r.name != p.name:
@@ -316,7 +510,8 @@ class LRTable(object):
             lookdict[state, N] = lookb
         return lookdict, includedict
 
-    def add_lookaheads(self, lookbacks, followset):
+    @classmethod
+    def add_lookaheads(cls, lookbacks, followset):
         for trans, lb in iteritems(lookbacks):
             for state, p in lb:
                 f = followset.get(trans, [])
@@ -324,108 +519,3 @@ class LRTable(object):
                 for a in f:
                     if a not in laheads:
                         laheads.append(a)
-
-    def build_table(self):
-        C = self.lr0_items()
-
-        self.add_lalr_lookaheads(C)
-
-        self.lr_action = [None] * len(C)
-        self.lr_goto = [None] * len(C)
-        for st, I in enumerate(C):
-            st_action = {}
-            st_actionp = {}
-            st_goto = {}
-            for p in I:
-                if p.getlength() == p.lr_index + 1:
-                    if p.name == "S'":
-                        # Start symbol. Accept!
-                        st_action["$end"] = 0
-                        st_actionp["$end"] = p
-                    else:
-                        laheads = p.lookaheads[st]
-                        for a in laheads:
-                            if a in st_action:
-                                r = st_action[a]
-                                if r > 0:
-                                    sprec, slevel = self.grammar.productions[st_actionp[a].number].prec
-                                    rprec, rlevel = self.grammar.precedence.get(a, ("right", 0))
-                                    if (slevel < rlevel) or (slevel == rlevel and rprec == "left"):
-                                        st_action[a] = -p.number
-                                        st_actionp[a] = p
-                                        if not slevel and not rlevel:
-                                            self.sr_conflicts.append((st, a, "reduce"))
-                                        self.grammar.productions[p.number].reduced += 1
-                                    elif slevel == rlevel and rprec == "nonassoc":
-                                        st_action[a] = None
-                                    else:
-                                        if not rlevel:
-                                            self.sr_conflicts.append((st, a, "shift"))
-                                elif r < 0:
-                                    oldp = self.grammar.productions[-r]
-                                    pp = self.grammar.productions[p.number]
-                                    if oldp.number > pp.number:
-                                        st_action[a] = -p.number
-                                        st_actionp[a] = p
-                                        chosenp, rejectp = pp, oldp
-                                        self.grammar.productions[p.number].reduced += 1
-                                        self.grammar.productions[oldp.number].reduced -= 1
-                                    else:
-                                        chosenp, rejectp = oldp, pp
-                                    self.rr_conflicts.append((st, chosenp, rejectp))
-                                else:
-                                    raise LALRError("Unknown conflict in state %d" % st)
-                            else:
-                                st_action[a] = -p.number
-                                st_actionp[a] = p
-                                self.grammar.productions[p.number].reduced += 1
-                else:
-                    i = p.lr_index
-                    a = p.prod[i + 1]
-                    if a in self.grammar.terminals:
-                        g = self.lr0_goto(I, a)
-                        j = self.lr0_cidhash.get(g, -1)
-                        if j >= 0:
-                            if a in st_action:
-                                r = st_action[a]
-                                if r > 0:
-                                    if r != j:
-                                        raise LALRError("Shift/shift conflict in state %d" % st)
-                                elif r < 0:
-                                    rprec, rlevel = self.grammar.productions[st_actionp[a].number].prec
-                                    sprec, slevel = self.grammar.precedence.get(a, ("right", 0))
-                                    if (slevel > rlevel) or (slevel == rlevel and rprec == "right"):
-                                        self.grammar.productions[st_actionp[a].number].reduced -= 1
-                                        st_action[a] = j
-                                        st_actionp[a] = p
-                                        if not rlevel:
-                                            self.sr_conflicts.append((st, a, "shift"))
-                                    elif slevel == rlevel and rprec == "nonassoc":
-                                        st_action[a] = None
-                                    else:
-                                        if not slevel and not rlevel:
-                                            self.sr_conflicts.append((st, a, "reduce"))
-                                else:
-                                    raise LALRError("Unknown conflict in state %d" % st)
-                            else:
-                                st_action[a] = j
-                                st_actionp[a] = p
-            nkeys = set()
-            for ii in I:
-                for s in ii.unique_syms:
-                    if s in self.grammar.nonterminals:
-                        nkeys.add(s)
-            for n in nkeys:
-                g = self.lr0_goto(I, n)
-                j = self.lr0_cidhash.get(g, -1)
-                if j >= 0:
-                    st_goto[n] = j
-
-            self.lr_action[st] = st_action
-            self.lr_goto[st] = st_goto
-
-        self.default_reductions = [0] * len(self.lr_action)
-        for state, actions in enumerate(self.lr_action):
-            actions = set(itervalues(actions))
-            if len(actions) == 1 and next(iter(actions)) < 0:
-                self.default_reductions[state] = next(iter(actions))

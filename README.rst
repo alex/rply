@@ -16,8 +16,11 @@ Basic API:
     from rply import ParserGenerator
     from rply.token import BaseBox
 
-    # This is a list of the token names.
-    pg = ParserGenerator(["NUMBER", "PLUS", "MINUS"])
+    # This is a list of the token names. cache_id is an optional string
+    # which specifies an ID to use for caching. It should *always* be safe
+    # to use caching, RPly will automatically detect when your grammar is
+    # changed and refresh the cache for you.
+    pg = ParserGenerator(["NUMBER", "PLUS", "MINUS"], cache_id="myparser")
 
     @pg.production("main : expr")
     def main(p):
