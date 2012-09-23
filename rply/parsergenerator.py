@@ -131,7 +131,7 @@ class ParserGenerator(object):
                 table = LRTable.from_cache(g, data)
         if table is None:
             table = LRTable.from_grammar(g)
-            with open(cache_file, 'w') as f:
+            with open(cache_file, "w") as f:
                 json.dump(self.serialize_table(table), f)
         if table.sr_conflicts:
             warnings.warn(
