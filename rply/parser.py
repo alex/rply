@@ -13,7 +13,7 @@ class LRParser(object):
         lookaheadstack = []
 
         statestack = [0]
-        symstack = [Token("$end", None)]
+        symstack = [Token("$end", "$end")]
 
         current_state = 0
         while True:
@@ -29,7 +29,7 @@ class LRParser(object):
                     lookahead = tokenizer.next()
 
                 if lookahead is None:
-                    lookahead = Token("$end", None)
+                    lookahead = Token("$end", "$end")
 
             ltype = lookahead.gettokentype()
             if ltype in self.lr_table.lr_action[current_state]:
