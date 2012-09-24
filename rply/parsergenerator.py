@@ -55,6 +55,7 @@ class ParserGenerator(object):
             hasher.update(bytes(level))
         for p in g.productions:
             hasher.update(p.name.encode())
+            hasher.update(json.dumps(p.prec).encode())
             hasher.update(json.dumps(p.prod).encode())
         return hasher.hexdigest()
 
@@ -68,7 +69,7 @@ class ParserGenerator(object):
             "start": table.grammar.start,
             "terminals": sorted(table.grammar.terminals),
             "precedence": table.grammar.precedence,
-            "productions": [(p.name, p.prod) for p in table.grammar.productions],
+            "productions": [(p.name, p.prod, p.prec) for p in table.grammar.productions],
         }
 
     def data_is_valid(self, g, data):
@@ -83,10 +84,12 @@ class ParserGenerator(object):
                 return False
         if len(g.productions) != len(data["productions"]):
             return False
-        for p, (name, prod) in zip(g.productions, data["productions"]):
+        for p, (name, prod, (assoc, level)) in zip(g.productions, data["productions"]):
             if p.name != name:
                 return False
             if p.prod != prod:
+                return False
+            if p.prec != (assoc, level):
                 return False
         return True
 
