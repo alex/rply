@@ -25,7 +25,7 @@ class ParserGenerator(object):
         self.precedence = precedence
         if cache_id is None:
             # This ensures that we always go through the caching code.
-            cache_id = "".join(random.choice(string.letters) for _ in range(6))
+            cache_id = "".join(random.choice(string.ascii_letters) for _ in range(6))
         self.cache_id = cache_id
         self.error_handler = None
 
