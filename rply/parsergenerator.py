@@ -47,15 +47,15 @@ class ParserGenerator(object):
 
     def compute_grammar_hash(self, g):
         hasher = hashlib.sha1()
-        hasher.update(g.start)
-        hasher.update(json.dumps(sorted(g.terminals)))
-        for term, (assoc, level) in sorted(g.precedence.iteritems()):
-            hasher.update(term)
-            hasher.update(assoc)
-            hasher.update(str(level))
+        hasher.update(g.start.encode())
+        hasher.update(json.dumps(sorted(g.terminals)).encode())
+        for term, (assoc, level) in sorted(iteritems(g.precedence)):
+            hasher.update(term.encode())
+            hasher.update(assoc.encode())
+            hasher.update(bytes(level))
         for p in g.productions:
-            hasher.update(p.name)
-            hasher.update(json.dumps(p.prod))
+            hasher.update(p.name.encode())
+            hasher.update(json.dumps(p.prod).encode())
         return hasher.hexdigest()
 
     def serialize_table(self, table):
