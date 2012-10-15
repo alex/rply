@@ -197,11 +197,11 @@ class LRTable(object):
     @classmethod
     def from_cache(cls, grammar, data):
         lr_action = [
-            dict([(str(k), v) for k, v in action.iteritems()])
+            dict([(str(k), v) for k, v in iteritems(action)])
             for action in data["lr_action"]
         ]
         lr_goto = [
-            dict([(str(k), v) for k, v in goto.iteritems()])
+            dict([(str(k), v) for k, v in iteritems(goto)])
             for goto in data["lr_goto"]
         ]
         return LRTable(
