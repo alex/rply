@@ -1,7 +1,7 @@
 RPLY
 ====
 
-.. image:: https://secure.travis-ci.org/alex/rply.png?branch=master
+.. image:: https://secure.travis-ci.org/alex/rply.png
     :target: http://travis-ci.org/#!/alex/rply
 
 Welcome to RPLY! A pure python parser generator, that also works with RPython.
