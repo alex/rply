@@ -4,6 +4,7 @@ python:
     - "2.7"
     - "3.1"
     - "3.2"
+    - "pypy"
 install:
     - pip install pytest
     - wget https://bitbucket.org/pypy/pypy/get/default.tar.bz2 -O `pwd`/../pypy.tar.bz2
