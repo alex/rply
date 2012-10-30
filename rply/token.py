@@ -4,7 +4,6 @@ class BaseBox(object):
 
 class Token(BaseBox):
     def __init__(self, name, value, source_pos=None):
-        BaseBox.__init__(self)
         self.name = name
         self.value = value
         self.source_pos = source_pos
