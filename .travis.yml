@@ -11,5 +11,5 @@ install:
     - tar -xf `pwd`/../pypy.tar.bz2 -C `pwd`/../
 script: PYTHONPATH=$PYTONPATH:`python -c "import glob; import os; print os.path.abspath(glob.glob('../pypy-pypy*')[0])"` py.test
 notifications:
-    - email: false
+    email: false
 
