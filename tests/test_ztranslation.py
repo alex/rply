@@ -1,9 +1,9 @@
 import py
 
 try:
-    from pypy.rpython.test.test_llinterp import interpret
+    from rpython.rtyper.test.test_llinterp import interpret
 except ImportError:
-    py.test.skip("Needs PyPy to be on the PYTHONPATH")
+    py.test.skip("Needs RPython to be on the PYTHONPATH")
 
 from rply import ParserGenerator, Token
 from rply.errors import ParserGeneratorWarning
