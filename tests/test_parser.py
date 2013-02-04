@@ -10,7 +10,7 @@ from .base import BaseTests
 from .utils import FakeLexer, RecordingLexer, BoxInt, ParserState
 
 
-class TestBasic(BaseTests):
+class TestParser(BaseTests):
     def test_simple(self):
         pg = ParserGenerator(["VALUE"])
 
