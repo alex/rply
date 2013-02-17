@@ -2,7 +2,10 @@ import re
 
 try:
     import rpython
+    from rpython.annotator import model
+    from rpython.annotator.bookkeeper import getbookkeeper
     from rpython.rtyper.extregistry import ExtRegistryEntry
+    from rpython.tool.pairtype import pairtype
 except ImportError:
     rpython = None
 
@@ -13,6 +16,9 @@ class Rule(object):
     def __init__(self, name, pattern):
         self.name = name
         self.re = re.compile(pattern)
+
+    def _freeze_(self):
+        return True
 
     def matches(self, s, pos):
         m = self.re.match(s, pos)
@@ -38,3 +44,14 @@ class LexerGenerator(object):
 if rpython:
     class RuleEntry(ExtRegistryEntry):
         _type_ = Rule
+
+        def compute_annotation(self, *args):
+            return SomeRule()
+
+    class SomeRule(model.SomeObject):
+        def method_matches(self, s_s, s_pos):
+            return model.SomeInstance(getbookkeeper().getuniqueclassdef(Match))
+
+    class __extend__(pairtype(SomeRule, SomeRule)):
+        def union((self, other)):
+            return self

@@ -12,10 +12,7 @@ from .base import BaseTests
 from .utils import FakeLexer, BoxInt, ParserState
 
 
-class TestTranslation(BaseTests):
-    def run(self, func, args):
-        return interpret(func, args)
-
+class BaseTestTranslation(BaseTests):
     def test_basic_lexer(self):
         lg = LexerGenerator()
         lg.add("NUMBER", r"\d+")
@@ -30,14 +27,14 @@ class TestTranslation(BaseTests):
             while i < 5:
                 t = tokens.next()
                 if i % 2 == 0:
+                    if t.name != "NUMBER":
+                        return -1
+                    s += int(t.value)
+                else:
                     if t.name != "PLUS":
                         return -1
                     if t.value != "+":
                         return -1
-                else:
-                    if t.name != "NUMBER":
-                        return -1
-                    s += int(t.value)
                 i += 1
             if tokens.next() is not None:
                 return -1
@@ -105,3 +102,13 @@ class TestTranslation(BaseTests):
             ]), state=state).getint() + state.count
 
         assert self.run(f, []) == 26
+
+
+class TestTranslation(BaseTestTranslation):
+    def run(self, func, args):
+        return interpret(func, args)
+
+
+class TestUntranslated(BaseTestTranslation):
+    def run(self, func, args):
+        return func(*args)
