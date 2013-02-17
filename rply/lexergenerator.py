@@ -65,7 +65,7 @@ if rpython:
 
         def method_matches(self, s_s, s_pos):
             assert model.SomeString().contains(s_s)
-            assert model.SomeInteger().contains(s_pos)
+            assert model.SomeInteger(nonneg=True).contains(s_pos)
 
             bk = getbookkeeper()
             init_pbc = bk.immutablevalue(Match.__init__)
@@ -111,7 +111,9 @@ if rpython:
 
         def rtype_method_matches(self, hop):
             [v_rule, v_s, v_pos] = hop.inputargs(self, string_repr, lltype.Signed)
-            return hop.gendirectcall(LLRule.ll_matches, v_rule, v_s, v_pos)
+            r_match = hop.r_result
+            c_MATCH = hop.inputconst(lltype.Void, r_match.lowleveltype.TO)
+            return hop.gendirectcall(LLRule.ll_matches, c_MATCH, v_rule, v_s, v_pos)
 
     class LLRule(object):
         @staticmethod
@@ -119,11 +121,15 @@ if rpython:
             return ll_rule.name
 
         @staticmethod
-        def ll_matches(ll_rule, s, pos):
+        def ll_matches(RESULTTYPE, ll_rule, s, pos):
             s = hlstr(s)
+            assert pos >= 0
             ctx = rsre_core.StrMatchContext(ll_rule.code, hlstr(s), pos, len(s), 0)
             matched = rsre_core.search_context(ctx)
             if matched:
-                raise NotImplementedError
+                match = lltype.malloc(RESULTTYPE)
+                match.inst_start = ctx.match_start
+                match.inst_end = ctx.match_end
+                return match
             else:
-                return lltype.nullptr()
+                return lltype.nullptr(RESULTTYPE)
