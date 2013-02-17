@@ -5,7 +5,7 @@ try:
 except ImportError:
     py.test.skip("Needs RPython to be on the PYTHONPATH")
 
-from rply import ParserGenerator, Token
+from rply import ParserGenerator, LexerGenerator, Token
 from rply.errors import ParserGeneratorWarning
 
 from .base import BaseTests
@@ -16,7 +16,36 @@ class TestTranslation(BaseTests):
     def run(self, func, args):
         return interpret(func, args)
 
-    def test_basic(self):
+    def test_basic_lexer(self):
+        lg = LexerGenerator()
+        lg.add("NUMBER", r"\d+")
+        lg.add("PLUS", r"\+")
+
+        l = lg.build()
+
+        def f(n):
+            tokens = l.lex("%d+%d+%d" % (n, n, n))
+            i = 0
+            s = 0
+            while i < 5:
+                t = tokens.next()
+                if i % 2 == 0:
+                    if t.name != "PLUS":
+                        return -1
+                    if t.value != "+":
+                        return -1
+                else:
+                    if t.name != "NUMBER":
+                        return -1
+                    s += int(t.value)
+                i += 1
+            if tokens.next() is not None:
+                return -1
+            return s
+
+        assert self.run(f, [14]) == 42
+
+    def test_basic_parser(self):
         pg = ParserGenerator(["NUMBER", "PLUS"])
 
         @pg.production("main : expr")
@@ -43,7 +72,7 @@ class TestTranslation(BaseTests):
 
         assert self.run(f, [12]) == 24
 
-    def test_state(self):
+    def test_parser_state(self):
         pg = ParserGenerator(["NUMBER", "PLUS"], precedence=[
             ("left", ["PLUS"]),
         ])
