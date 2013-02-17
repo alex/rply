@@ -54,7 +54,7 @@ if rpython:
         def method_matches(self, s_s, s_pos):
             assert isinstance(s_s, model.SomeString)
             assert isinstance(s_pos, model.SomeInteger)
-            return model.SomeInstance(getbookkeeper().getuniqueclassdef(Match))
+            return model.SomeInstance(getbookkeeper().getuniqueclassdef(Match), can_be_None=True)
 
     class __extend__(pairtype(SomeRule, SomeRule)):
         def union((self, other)):
