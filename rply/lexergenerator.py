@@ -52,8 +52,16 @@ if rpython:
 
     class SomeRule(model.SomeObject):
         def method_matches(self, s_s, s_pos):
-            assert isinstance(s_s, model.SomeString)
-            assert isinstance(s_pos, model.SomeInteger)
+            assert model.SomeString().contains(s_s)
+            assert model.SomeInteger().contains(s_pos)
+
+            bk = getbookkeeper()
+            init_pbc = bk.immutablevalue(Match.__init__)
+            bk.emulate_pbc_call((self, "match_init"), init_pbc, [
+                model.SomeInstance(bk.getuniqueclassdef(Match)),
+                model.SomeInteger(nonneg=True),
+                model.SomeInteger(nonneg=True)
+            ])
             return model.SomeInstance(getbookkeeper().getuniqueclassdef(Match), can_be_None=True)
 
     class __extend__(pairtype(SomeRule, SomeRule)):
