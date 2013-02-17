@@ -1,5 +1,5 @@
 class BaseBox(object):
-    pass
+    _attrs_ = []
 
 
 class Token(BaseBox):

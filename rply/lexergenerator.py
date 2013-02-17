@@ -26,6 +26,8 @@ class Rule(object):
 
 
 class Match(object):
+    _attrs_ = ["start", "end"]
+
     def __init__(self, start, end):
         self.start = start
         self.end = end
@@ -50,6 +52,8 @@ if rpython:
 
     class SomeRule(model.SomeObject):
         def method_matches(self, s_s, s_pos):
+            assert isinstance(s_s, model.SomeString)
+            assert isinstance(s_pos, model.SomeInteger)
             return model.SomeInstance(getbookkeeper().getuniqueclassdef(Match))
 
     class __extend__(pairtype(SomeRule, SomeRule)):
