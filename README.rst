@@ -13,8 +13,14 @@ Basic API:
 
 .. code:: python
 
-    from rply import ParserGenerator
+    from rply import ParserGenerator, LexerGenerator
     from rply.token import BaseBox
+
+    lg = LexerGenerator()
+    # Add takes a rule name, and a regular expression that defines the rule.
+    lg.add("PLUS", r"\+")
+    lg.add("MINUS", r"-")
+    lg.add("NUMBER", r"\d+")
 
     # This is a list of the token names. cache_id is an optional string
     # which specifies an ID to use for caching. It should *always* be safe
@@ -44,6 +50,7 @@ Basic API:
     def expr_num(p):
         return BoxInt(int(p[0].getstr()))
 
+    lexer = lg.build()
     parser = pg.build()
 
     class BoxInt(BaseBox):
@@ -57,10 +64,11 @@ Then you can do:
 
 .. code:: python
 
-    parser.parse(lexer)
+    parser.parse(lexer.lex("some string"))
 
-Where lexer is an object that defines a ``next()`` method that returns either
-the next token in sequence, or ``None`` if the token stream has been exhausted.
+You can also substitute your own lexer. A lexer is an object with a ``next()``
+method that returns either the next token in sequence, or ``None`` if the token
+stream has been exhausted.
 
 Why do we have the boxes?
 -------------------------
