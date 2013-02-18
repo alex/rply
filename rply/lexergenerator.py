@@ -99,7 +99,7 @@ if rpython:
 
     class __extend__(pairtype(SomeRule, SomeRule)):
         def union((self, other)):
-            return self
+            return SomeRule()
 
     class RuleRepr(Repr):
         def __init__(self, rtyper):
