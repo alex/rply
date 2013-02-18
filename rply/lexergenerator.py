@@ -162,11 +162,15 @@ if rpython:
             s = hlstr(s)
             assert pos >= 0
             ctx = instantiate(MATCH_CONTEXTTYPE)
-            hlinvoke(MATCH_CONTEXT_INIT, rsre_core.StrMatchContext.__init__, ctx, ll_rule.code, hlstr(s), pos, len(s), 0)
+            hlinvoke(MATCH_CONTEXT_INIT, rsre_core.StrMatchContext.__init__,
+                ctx, ll_rule.code, hlstr(s), pos, len(s), 0
+            )
             matched = hlinvoke(MATCH_CONTEXT, rsre_core.match_context, ctx)
             if matched:
                 match = instantiate(MATCHTYPE)
-                hlinvoke(MATCH_INIT, Match.__init__, match, ctx.match_start, ctx.match_end)
+                hlinvoke(MATCH_INIT, Match.__init__,
+                    match, ctx.match_start, ctx.match_end
+                )
                 return match
             else:
                 return None
