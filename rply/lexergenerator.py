@@ -4,7 +4,7 @@ try:
     import rpython
     from rpython.annotator import model
     from rpython.annotator.bookkeeper import getbookkeeper
-    from rpython.rlib.objectmodel import instantiate
+    from rpython.rlib.objectmodel import instantiate, hlinvoke
     from rpython.rlib.rsre import rsre_core
     from rpython.rlib.rsre.rpy import get_code
     from rpython.rtyper.annlowlevel import llstr, hlstr
@@ -85,6 +85,10 @@ if rpython:
                 model.SomeInteger(nonneg=True),
                 model.SomeInteger(nonneg=True),
             ])
+            search_context_pbc = bk.immutablevalue(rsre_core.search_context)
+            bk.emulate_pbc_call((self, "search_context"), search_context_pbc, [
+                model.SomeInstance(bk.getuniqueclassdef(rsre_core.StrMatchContext)),
+            ])
 
             return model.SomeInstance(getbookkeeper().getuniqueclassdef(Match), can_be_None=True)
 
@@ -100,6 +104,17 @@ if rpython:
     class RuleRepr(Repr):
         def __init__(self, rtyper):
             super(RuleRepr, self).__init__()
+
+            self.match_init_repr = rtyper.getrepr(
+                rtyper.annotator.bookkeeper.immutablevalue(Match.__init__)
+            )
+            self.match_context_init_repr = rtyper.getrepr(
+                rtyper.annotator.bookkeeper.immutablevalue(rsre_core.StrMatchContext.__init__)
+            )
+            self.search_context_repr = rtyper.getrepr(
+                rtyper.annotator.bookkeeper.immutablevalue(rsre_core.search_context)
+            )
+
             list_repr = FixedSizeListRepr(rtyper, rtyper.getrepr(model.SomeInteger(nonneg=True)))
             list_repr._setup_repr()
             self.lowleveltype = lltype.Ptr(lltype.GcStruct("RULE",
@@ -126,7 +141,15 @@ if rpython:
         def rtype_method_matches(self, hop):
             [v_rule, v_s, v_pos] = hop.inputargs(self, string_repr, lltype.Signed)
             c_MATCH = hop.inputconst(lltype.Void, Match)
-            return hop.gendirectcall(LLRule.ll_matches, c_MATCH, v_rule, v_s, v_pos)
+            c_MATCH_INIT = hop.inputconst(lltype.Void, self.match_init_repr)
+            c_MATCH_CONTEXT = hop.inputconst(lltype.Void, rsre_core.StrMatchContext)
+            c_MATCH_CONTEXT_INIT = hop.inputconst(lltype.Void, self.match_context_init_repr)
+            c_SEARCH_CONTEXT = hop.inputconst(lltype.Void, self.search_context_repr)
+
+            return hop.gendirectcall(LLRule.ll_matches,
+                c_MATCH, c_MATCH_INIT, c_MATCH_CONTEXT, c_MATCH_CONTEXT_INIT,
+                c_SEARCH_CONTEXT, v_rule, v_s, v_pos
+            )
 
     class LLRule(object):
         @staticmethod
@@ -134,15 +157,16 @@ if rpython:
             return ll_rule.name
 
         @staticmethod
-        def ll_matches(MATCHTYPE, ll_rule, s, pos):
+        def ll_matches(MATCHTYPE, MATCH_INIT, MATCH_CONTEXTTYPE,
+                       MATCH_CONTEXT_INIT, SEARCH_CONTEXT, ll_rule, s, pos):
             s = hlstr(s)
             assert pos >= 0
-            ctx = rsre_core.StrMatchContext(ll_rule.code, hlstr(s), pos, len(s), 0)
-            matched = rsre_core.search_context(ctx)
+            ctx = instantiate(MATCH_CONTEXTTYPE)
+            hlinvoke(MATCH_CONTEXT_INIT, rsre_core.StrMatchContext.__init__, ctx, ll_rule.code, hlstr(s), pos, len(s), 0)
+            matched = hlinvoke(SEARCH_CONTEXT, rsre_core.search_context, ctx)
             if matched:
                 match = instantiate(MATCHTYPE)
-                match.start = ctx.match_start
-                match.end = ctx.match_end
+                hlinvoke(MATCH_INIT, Match.__init__, match, ctx.match_start, ctx.match_end)
                 return match
             else:
                 return None

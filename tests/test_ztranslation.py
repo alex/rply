@@ -32,12 +32,12 @@ class BaseTestTranslation(BaseTests):
                     s += int(t.value)
                 else:
                     if t.name != "PLUS":
-                        return -1
+                        return -2
                     if t.value != "+":
-                        return -1
+                        return -3
                 i += 1
             if tokens.next() is not None:
-                return -1
+                return -4
             return s
 
         assert self.run(f, [14]) == 42
