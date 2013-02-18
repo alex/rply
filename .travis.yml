@@ -5,6 +5,9 @@ python:
     - "3.2"
     - "3.3"
     - "pypy"
+matrix:
+    allow_failures:
+        - python: "3.3"
 install:
     - pip install pytest
     - wget https://bitbucket.org/pypy/pypy/get/default.tar.bz2 -O `pwd`/../pypy.tar.bz2
