@@ -98,7 +98,7 @@ if rpython:
             return super(SomeRule, self).getattr(s_attr)
 
     class __extend__(pairtype(SomeRule, SomeRule)):
-        def union((self, other)):
+        def union(self):
             return SomeRule()
 
     class RuleRepr(Repr):
