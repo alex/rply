@@ -64,7 +64,7 @@ Then you can do:
 
 .. code:: python
 
-    parser.parse(lexer.lex("some string"))
+    parser.parse(lexer.lex("1+3-2+12-32"))
 
 You can also substitute your own lexer. A lexer is an object with a ``next()``
 method that returns either the next token in sequence, or ``None`` if the token
