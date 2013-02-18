@@ -105,6 +105,8 @@ if rpython:
         def __init__(self, rtyper):
             super(RuleRepr, self).__init__()
 
+            self.ll_rule_cache = {}
+
             self.match_init_repr = rtyper.getrepr(
                 rtyper.annotator.bookkeeper.immutablevalue(Match.__init__)
             )
@@ -123,13 +125,15 @@ if rpython:
             ))
 
         def convert_const(self, rule):
-            ll_rule = lltype.malloc(self.lowleveltype.TO)
-            ll_rule.name = llstr(rule.name)
-            code = get_code(rule.re.pattern)
-            ll_rule.code = lltype.malloc(self.lowleveltype.TO.code.TO, len(code))
-            for i, c in enumerate(code):
-                ll_rule.code[i] = c
-            return ll_rule
+            if rule not in self.ll_rule_cache:
+                ll_rule = lltype.malloc(self.lowleveltype.TO)
+                ll_rule.name = llstr(rule.name)
+                code = get_code(rule.re.pattern)
+                ll_rule.code = lltype.malloc(self.lowleveltype.TO.code.TO, len(code))
+                for i, c in enumerate(code):
+                    ll_rule.code[i] = c
+                self.ll_rule_cache[rule] = ll_rule
+            return self.ll_rule_cache[rule]
 
         def rtype_getattr(self, hop):
             s_attr = hop.args_s[1]
