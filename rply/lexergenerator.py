@@ -4,11 +4,13 @@ try:
     import rpython
     from rpython.annotator import model
     from rpython.annotator.bookkeeper import getbookkeeper
+    from rpython.rlib.objectmodel import instantiate
     from rpython.rlib.rsre import rsre_core
     from rpython.rlib.rsre.rpy import get_code
     from rpython.rtyper.annlowlevel import llstr, hlstr
     from rpython.rtyper.extregistry import ExtRegistryEntry
     from rpython.rtyper.lltypesystem import lltype
+    from rpython.rtyper.lltypesystem.rlist import FixedSizeListRepr
     from rpython.rtyper.lltypesystem.rstr import STR, string_repr
     from rpython.rtyper.rmodel import Repr
     from rpython.tool.pairtype import pairtype
@@ -74,6 +76,16 @@ if rpython:
                 model.SomeInteger(nonneg=True),
                 model.SomeInteger(nonneg=True)
             ])
+            init_pbc = bk.immutablevalue(rsre_core.StrMatchContext.__init__)
+            bk.emulate_pbc_call((self, "str_match_context_init"), init_pbc, [
+                model.SomeInstance(bk.getuniqueclassdef(rsre_core.StrMatchContext)),
+                bk.newlist(model.SomeInteger(nonneg=True)),
+                model.SomeString(),
+                model.SomeInteger(nonneg=True),
+                model.SomeInteger(nonneg=True),
+                model.SomeInteger(nonneg=True),
+            ])
+
             return model.SomeInstance(getbookkeeper().getuniqueclassdef(Match), can_be_None=True)
 
         def getattr(self, s_attr):
@@ -88,9 +100,11 @@ if rpython:
     class RuleRepr(Repr):
         def __init__(self, rtyper):
             super(RuleRepr, self).__init__()
+            list_repr = FixedSizeListRepr(rtyper, rtyper.getrepr(model.SomeInteger(nonneg=True)))
+            list_repr._setup_repr()
             self.lowleveltype = lltype.Ptr(lltype.GcStruct("RULE",
                 ("name", lltype.Ptr(STR)),
-                ("code", lltype.Ptr(lltype.GcArray(lltype.Signed))),
+                ("code", list_repr.lowleveltype),
             ))
 
         def convert_const(self, rule):
@@ -111,8 +125,7 @@ if rpython:
 
         def rtype_method_matches(self, hop):
             [v_rule, v_s, v_pos] = hop.inputargs(self, string_repr, lltype.Signed)
-            r_match = hop.r_result
-            c_MATCH = hop.inputconst(lltype.Void, r_match.lowleveltype.TO)
+            c_MATCH = hop.inputconst(lltype.Void, Match)
             return hop.gendirectcall(LLRule.ll_matches, c_MATCH, v_rule, v_s, v_pos)
 
     class LLRule(object):
@@ -121,15 +134,15 @@ if rpython:
             return ll_rule.name
 
         @staticmethod
-        def ll_matches(RESULTTYPE, ll_rule, s, pos):
+        def ll_matches(MATCHTYPE, ll_rule, s, pos):
             s = hlstr(s)
             assert pos >= 0
             ctx = rsre_core.StrMatchContext(ll_rule.code, hlstr(s), pos, len(s), 0)
             matched = rsre_core.search_context(ctx)
             if matched:
-                match = lltype.malloc(RESULTTYPE)
-                match.inst_start = ctx.match_start
-                match.inst_end = ctx.match_end
+                match = instantiate(MATCHTYPE)
+                match.start = ctx.match_start
+                match.end = ctx.match_end
                 return match
             else:
-                return lltype.nullptr(RESULTTYPE)
+                return None
