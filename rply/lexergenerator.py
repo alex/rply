@@ -44,12 +44,17 @@ class Match(object):
 class LexerGenerator(object):
     def __init__(self):
         self.rules = []
+        self.ignore_rules = []
 
     def add(self, name, pattern):
         self.rules.append(Rule(name, pattern))
 
+    def ignore(self, pattern):
+        self.ignore_rules.append(Rule("", pattern))
+
+
     def build(self):
-        return Lexer(self.rules)
+        return Lexer(self.rules, self.ignore_rules)
 
 if rpython:
     class RuleEntry(ExtRegistryEntry):

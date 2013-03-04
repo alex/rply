@@ -3,8 +3,9 @@ from rply.token import SourcePosition, Token
 
 
 class Lexer(object):
-    def __init__(self, rules):
+    def __init__(self, rules, ignore_rules):
         self.rules = rules
+        self.ignore_rules = ignore_rules
 
     def lex(self, s):
         return LexerStream(self, s)
@@ -19,6 +20,11 @@ class LexerStream(object):
     def next(self):
         if self.idx >= len(self.s):
             return None
+        for rule in self.lexer.ignore_rules:
+            match = rule.matches(self.s, self.idx)
+            if match:
+                self.idx = match.end
+                return self.next()
         for rule in self.lexer.rules:
             match = rule.matches(self.s, self.idx)
             if match:

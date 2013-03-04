@@ -22,11 +22,17 @@ Basic API:
     lg.add("MINUS", r"-")
     lg.add("NUMBER", r"\d+")
 
-    # This is a list of the token names. cache_id is an optional string
-    # which specifies an ID to use for caching. It should *always* be safe
-    # to use caching, RPly will automatically detect when your grammar is
+    lg.ignore(r"\s+")
+
+    # This is a list of the token names. precedence is an optional list of
+    # tuples which specifies order of operation for avoiding ambiguity.
+    # precedence must be one of "left", "right", "nonassoc".
+    # cache_id is an optional string which specifies an ID to use for
+    # caching. It should *always* be safe to use caching,
+    # RPly will automatically detect when your grammar is
     # changed and refresh the cache for you.
-    pg = ParserGenerator(["NUMBER", "PLUS", "MINUS"], cache_id="myparser")
+    pg = ParserGenerator(["NUMBER", "PLUS", "MINUS"],
+            precedence=[("left", ['PLUS', 'MINUS'])], cache_id="myparser")
 
     @pg.production("main : expr")
     def main(p):
@@ -39,9 +45,9 @@ Basic API:
     def expr_op(p):
         lhs = p[0].getint()
         rhs = p[2].getint()
-        if p[1].gettokenname() == "PLUS":
+        if p[1].gettokentype() == "PLUS":
             return BoxInt(lhs + rhs)
-        elif p[1].gettokenname() = "MINUS":
+        elif p[1].gettokentype() = "MINUS":
             return BoxInt(lhs - rhs)
         else:
             raise AssertionError("This is impossible, abort the time machine!")
@@ -64,7 +70,7 @@ Then you can do:
 
 .. code:: python
 
-    parser.parse(lexer.lex("1+3-2+12-32"))
+    parser.parse(lexer.lex("1 + 3 - 2+12-32"))
 
 You can also substitute your own lexer. A lexer is an object with a ``next()``
 method that returns either the next token in sequence, or ``None`` if the token
