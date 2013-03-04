@@ -41,6 +41,6 @@ class TestLexer(object):
         t = stream.next()
         assert t.name == "NUMBER"
         assert t.value == "3"
-        assert t.source_pos.idx == 2
+        assert t.source_pos.idx == 4
         t = stream.next()
         assert t is None
