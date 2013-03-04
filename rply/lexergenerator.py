@@ -49,8 +49,8 @@ class LexerGenerator(object):
     def add(self, name, pattern):
         self.rules.append(Rule(name, pattern))
 
-    def ignore(self, name, pattern):
-        self.ignore_rules.append(Rule(name, pattern))
+    def ignore(self, pattern):
+        self.ignore_rules.append(Rule("", pattern))
 
 
     def build(self):

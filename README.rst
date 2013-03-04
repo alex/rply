@@ -22,7 +22,7 @@ Basic API:
     lg.add("MINUS", r"-")
     lg.add("NUMBER", r"\d+")
 
-    lg.ignore("SPACING", r"\s+")
+    lg.ignore(r"\s+")
 
     # This is a list of the token names. precedence is an optional list of
     # tuples which specifies order of operation for avoiding ambiguity.

@@ -27,7 +27,7 @@ class TestLexer(object):
         lg = LexerGenerator()
         lg.add("NUMBER", r"\d+")
         lg.add("PLUS", r"\+")
-        lg.ignore("SPACING", r"\s+")
+        lg.ignore(r"\s+")
 
         l = lg.build()
 
