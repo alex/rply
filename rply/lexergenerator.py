@@ -52,7 +52,6 @@ class LexerGenerator(object):
     def ignore(self, pattern):
         self.ignore_rules.append(Rule("", pattern))
 
-
     def build(self):
         return Lexer(self.rules, self.ignore_rules)
 
