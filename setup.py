@@ -6,9 +6,9 @@ with open("README.rst") as f:
 
 setup(
     name="rply",
-    description="A pure Python Yacc that works with RPython",
+    description="A pure Python Lex/Yacc that works with RPython",
     long_description=readme,
-    version="0.5.1",
+    version="0.6.0",
     author="Alex Gaynor",
     author_email="alex.gaynor@gmail.com",
     packages=["rply"],
