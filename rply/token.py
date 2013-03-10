@@ -8,6 +8,9 @@ class Token(BaseBox):
         self.value = value
         self.source_pos = source_pos
 
+    def __repr__(self):
+        return "Token(%r, %r)" % (self.name, self.value)
+
     def __eq__(self, other):
         if not isinstance(other, Token):
             return NotImplemented

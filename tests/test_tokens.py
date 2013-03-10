@@ -8,5 +8,9 @@ class TestTokens(object):
 
     def test_eq(self):
         t = Token("VALUE", "3", SourcePosition(-1, -1, -1))
-        assert not (t == None)
-        assert t != None
+        assert not (t == 3)
+        assert t != 3
+
+    def test_repr(self):
+        t = Token("VALUE", "3")
+        assert repr(t) == "Token('VALUE', '3')"
