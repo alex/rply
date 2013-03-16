@@ -110,3 +110,9 @@ Python compatibility
 
 RPly is tested and known to work under Python 2.6, 2.7, 3.1, and 3.2. It is
 also valid RPython for PyPy checkouts from ``6c642ae7a0ea`` onwards.
+
+Links
+-----
+
+* `Source code and issue tracker <https://github.com/alex/rply/>`_
+* `PyPI releases <https://pypi.python.org/pypi/rply>`_
