@@ -46,7 +46,7 @@ Basic API:
         rhs = p[2].getint()
         if p[1].gettokentype() == "PLUS":
             return BoxInt(lhs + rhs)
-        elif p[1].gettokentype() = "MINUS":
+        elif p[1].gettokentype() == "MINUS":
             return BoxInt(lhs - rhs)
         else:
             raise AssertionError("This is impossible, abort the time machine!")
