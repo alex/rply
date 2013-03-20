@@ -116,3 +116,4 @@ Links
 
 * `Source code and issue tracker <https://github.com/alex/rply/>`_
 * `PyPI releases <https://pypi.python.org/pypi/rply>`_
+* `Talk at PyCon US 2013: So you want to write an interpreter? <http://pyvideo.org/video/1694/so-you-want-to-write-an-interpreter>`_
