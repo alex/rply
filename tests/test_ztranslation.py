@@ -101,7 +101,7 @@ class BaseTestTranslation(BaseTests):
 
         def f():
             state = ParserState()
-            return parser.parse(FakeLexer([
+            return parser.parse(iter([
                 Token("NUMBER", "10"),
                 Token("PLUS", "+"),
                 Token("NUMBER", "12"),
