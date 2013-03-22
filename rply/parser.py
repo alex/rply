@@ -27,7 +27,7 @@ class LRParser(object):
                     lookahead = lookaheadstack.pop()
                 else:
                     try:
-                        lookahead = tokenizer.next()
+                        lookahead = next(tokenizer)
                     except StopIteration:
                         lookahead = None
 

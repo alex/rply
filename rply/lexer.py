@@ -38,3 +38,6 @@ class LexerStream(object):
                 return token
         else:
             raise LexingError(None, SourcePosition(self.idx, -1, -1))
+
+    def __next__(self):
+        return self.next()

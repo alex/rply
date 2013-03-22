@@ -7,10 +7,10 @@ class RecordingLexer(object):
         self.record = record
 
     def next(self):
+        s = "None"
         try:
-            token = self.tokens.next()
+            token = next(self.tokens)
         except StopIteration:
-            s = "None"
             raise
         else:
             s = token.gettokentype()
@@ -18,6 +18,12 @@ class RecordingLexer(object):
             self.record.append("token:%s" % s)
 
         return token
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        return self.next()
 
 
 class BoxInt(BaseBox):
