@@ -9,7 +9,7 @@ from rply import ParserGenerator, LexerGenerator, Token
 from rply.errors import ParserGeneratorWarning
 
 from .base import BaseTests
-from .utils import FakeLexer, BoxInt, ParserState
+from .utils import BoxInt, ParserState
 
 
 class BaseTestTranslation(BaseTests):
@@ -36,8 +36,16 @@ class BaseTestTranslation(BaseTests):
                     if t.value != "+":
                         return -3
                 i += 1
-            if tokens.next() is not None:
+
+            ended = False
+            try:
+                tokens.next()
+            except StopIteration:
+                ended = True
+
+            if not ended:
                 return -4
+
             return s
 
         assert self.run(f, [14]) == 42
@@ -61,7 +69,7 @@ class BaseTestTranslation(BaseTests):
             parser = pg.build()
 
         def f(n):
-            return parser.parse(FakeLexer([
+            return parser.parse(iter([
                 Token("NUMBER", str(n)),
                 Token("PLUS", "+"),
                 Token("NUMBER", str(n))
@@ -93,7 +101,7 @@ class BaseTestTranslation(BaseTests):
 
         def f():
             state = ParserState()
-            return parser.parse(FakeLexer([
+            return parser.parse(iter([
                 Token("NUMBER", "10"),
                 Token("PLUS", "+"),
                 Token("NUMBER", "12"),
