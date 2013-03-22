@@ -26,7 +26,10 @@ class LRParser(object):
                 if lookaheadstack:
                     lookahead = lookaheadstack.pop()
                 else:
-                    lookahead = tokenizer.next()
+                    try:
+                        lookahead = tokenizer.next()
+                    except StopIteration:
+                        lookahead = None
 
                 if lookahead is None:
                     lookahead = Token("$end", "$end")
