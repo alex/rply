@@ -17,6 +17,9 @@ class LexerStream(object):
         self.s = s
         self.idx = 0
 
+    def __iter__(self):
+        return LexerIterator(self)
+
     def next(self):
         if self.idx >= len(self.s):
             return None
@@ -35,3 +38,15 @@ class LexerStream(object):
                 return token
         else:
             raise LexingError(None, SourcePosition(self.idx, -1, -1))
+
+
+class LexerIterator(object):
+    def __init__(self, lexer_stream):
+        self.lexer_stream = lexer_stream
+
+    def next(self):
+        value = self.lexer_stream.next()
+        if value is None:
+            raise StopIteration
+
+        return value
