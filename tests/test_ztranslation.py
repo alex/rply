@@ -9,7 +9,7 @@ from rply import ParserGenerator, LexerGenerator, Token
 from rply.errors import ParserGeneratorWarning
 
 from .base import BaseTests
-from .utils import FakeLexer, BoxInt, ParserState
+from .utils import BoxInt, ParserState
 
 
 class BaseTestTranslation(BaseTests):
@@ -69,7 +69,7 @@ class BaseTestTranslation(BaseTests):
             parser = pg.build()
 
         def f(n):
-            return parser.parse(FakeLexer([
+            return parser.parse(iter([
                 Token("NUMBER", str(n)),
                 Token("PLUS", "+"),
                 Token("NUMBER", str(n))

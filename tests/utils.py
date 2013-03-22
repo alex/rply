@@ -1,29 +1,22 @@
 from rply.token import BaseBox
 
 
-class FakeLexer(object):
-    def __init__(self, tokens):
-        self.tokens = iter(tokens)
-
-    def next(self):
-        try:
-            return next(self.tokens)
-        except StopIteration:
-            return None
-
-
-class RecordingLexer(FakeLexer):
+class RecordingLexer(object):
     def __init__(self, record, tokens):
-        super(RecordingLexer, self).__init__(tokens)
+        self.tokens = iter(tokens)
         self.record = record
 
     def next(self):
-        token = super(RecordingLexer, self).next()
-        if token is None:
+        try:
+            token = self.tokens.next()
+        except StopIteration:
             s = "None"
+            raise
         else:
             s = token.gettokentype()
-        self.record.append("token:%s" % s)
+        finally:
+            self.record.append("token:%s" % s)
+
         return token
 
 
