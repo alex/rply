@@ -36,8 +36,16 @@ class BaseTestTranslation(BaseTests):
                     if t.value != "+":
                         return -3
                 i += 1
-            if tokens.next() is not None:
+
+            ended = False
+            try:
+                tokens.next()
+            except StopIteration:
+                ended = True
+
+            if not ended:
                 return -4
+
             return s
 
         assert self.run(f, [14]) == 42
