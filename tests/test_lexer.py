@@ -44,3 +44,37 @@ class TestLexer(object):
         assert t.source_pos.idx == 4
         t = stream.next()
         assert t is None
+
+    def test_position(self):
+        lg = LexerGenerator()
+        lg.add("NUMBER", r"\d+")
+        lg.add("PLUS", r"\+")
+        lg.ignore(r"\s+")
+
+        l = lg.build()
+
+        stream = l.lex("2 + 3")
+        t = stream.next()
+        assert t.source_pos.lineno == 1
+        assert t.source_pos.colno == 1
+        t = stream.next()
+        assert t.source_pos.lineno == 1
+        assert t.source_pos.colno == 3
+        t = stream.next()
+        assert t.source_pos.lineno == 1
+        assert t.source_pos.colno == 5
+        t = stream.next()
+        assert t is None
+
+        stream = l.lex("2 +\n    37")
+        t = stream.next()
+        assert t.source_pos.lineno == 1
+        assert t.source_pos.colno == 1
+        t = stream.next()
+        assert t.source_pos.lineno == 1
+        assert t.source_pos.colno == 3
+        t = stream.next()
+        assert t.source_pos.lineno == 2
+        assert t.source_pos.colno == 5
+        t = stream.next()
+        assert t is None
