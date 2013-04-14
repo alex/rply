@@ -17,9 +17,12 @@ class LexerStream(object):
         self.s = s
         self.idx = 0
 
+    def __iter__(self):
+        return self
+
     def next(self):
         if self.idx >= len(self.s):
-            return None
+            raise StopIteration
         for rule in self.lexer.ignore_rules:
             match = rule.matches(self.s, self.idx)
             if match:
@@ -35,3 +38,6 @@ class LexerStream(object):
                 return token
         else:
             raise LexingError(None, SourcePosition(self.idx, -1, -1))
+
+    def __next__(self):
+        return self.next()

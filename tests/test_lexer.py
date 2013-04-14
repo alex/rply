@@ -1,3 +1,5 @@
+from pytest import raises
+
 from rply import LexerGenerator
 
 
@@ -20,8 +22,9 @@ class TestLexer(object):
         assert t.name == "NUMBER"
         assert t.value == "3"
         assert t.source_pos.idx == 2
-        t = stream.next()
-        assert t is None
+
+        with raises(StopIteration):
+            stream.next()
 
     def test_ignore(self):
         lg = LexerGenerator()
@@ -42,5 +45,6 @@ class TestLexer(object):
         assert t.name == "NUMBER"
         assert t.value == "3"
         assert t.source_pos.idx == 4
-        t = stream.next()
-        assert t is None
+
+        with raises(StopIteration):
+            stream.next()

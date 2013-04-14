@@ -4,7 +4,6 @@ from rply import ParserGenerator, Token
 from rply.errors import ParserGeneratorError
 
 from .base import BaseTests
-from .utils import FakeLexer
 
 
 class TestParserGenerator(BaseTests):
@@ -113,6 +112,6 @@ class TestParserCaching(object):
         pg.build()
         parser = pg.build()
 
-        assert parser.parse(FakeLexer([
+        assert parser.parse(iter([
             Token("VALUE", "3")
         ])) == Token("VALUE", "3")
