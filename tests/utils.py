@@ -10,9 +10,6 @@ class RecordingLexer(object):
         s = "None"
         try:
             token = next(self.tokens)
-        except StopIteration:
-            raise
-        else:
             s = token.gettokentype()
         finally:
             self.record.append("token:%s" % s)
