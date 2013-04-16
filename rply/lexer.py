@@ -56,8 +56,14 @@ class LexerStream(object):
         """
 
         old_idx = self.idx
+        old_lineno = self.lineno
+        old_last_break = self.last_break
+
         out = str(list(self))
-        self.idx = old_idx
+
+        self.idx = self.idx
+        self.lineno = self.lineno
+        self.last_break = self.last_break
         return out
 
     def __update_lineno__(self, cursor):
