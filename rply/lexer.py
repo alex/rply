@@ -16,6 +16,8 @@ class LexerStream(object):
         self.lexer = lexer
         self.s = s
         self.idx = 0
+        self.last_break = 0
+        self.lineno = 1
 
     def __iter__(self):
         return self
@@ -26,13 +28,16 @@ class LexerStream(object):
         for rule in self.lexer.ignore_rules:
             match = rule.matches(self.s, self.idx)
             if match:
+                self.__update_lineno__(match.end)                
                 self.idx = match.end
                 return self.next()
         for rule in self.lexer.rules:
             match = rule.matches(self.s, self.idx)
             if match:
-                # TODO: lineno and colno
-                source_pos = SourcePosition(match.start, -1, -1)
+                self.__update_lineno__(match.end)
+                source_pos = SourcePosition(match.start, 
+                                            self.lineno, 
+                                            match.start - self.last_break + 1)
                 token = Token(rule.name, self.s[match.start:match.end], source_pos)
                 self.idx = match.end
                 return token
@@ -49,8 +54,17 @@ class LexerStream(object):
         thus we need to restore the positioning information after generating
         the representation.
         """
-        
+
         old_idx = self.idx
         out = str(list(self))
         self.idx = old_idx
         return out
+
+    def __update_lineno__(self, cursor):
+        """ Updates the lineno by counting how many line breaks ('\n') there are 
+        between the current cursor position and the last break. 
+        """
+        
+        if self.s.rfind("\n", 0, cursor) >= self.last_break:
+            self.lineno += self.s.count("\n", self.last_break, cursor)
+            self.last_break = self.s.rfind("\n", 0, cursor) + 1
