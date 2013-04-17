@@ -93,3 +93,20 @@ class TestLexer(object):
         t = stream.next()
         assert t.source_pos.lineno == 4
         assert t.source_pos.colno == 2
+
+    def test_repr(self):
+        lg = LexerGenerator()
+        lg.add("NUMBER", r"\d+")
+        lg.add("PLUS", r"\+")
+        lg.ignore(r"\s+")
+ 
+        l = lg.build()
+ 
+        stream = l.lex("2 + 3")
+        assert str(stream) is not None
+        t = stream.next()
+        assert t.name == "NUMBER"
+        assert t.value == "2"
+        assert str(stream) is not None
+        t = stream.next()
+        assert t.name == "PLUS"
