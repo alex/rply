@@ -70,7 +70,7 @@ class LexerStream(object):
         """ Updates the lineno by counting how many line breaks ('\n') there are 
         between the current cursor position and the last break. 
         """
-        
+        assert self.last_break >= 0
         if self.s.rfind("\n", 0, cursor) >= self.last_break:
             self.lineno += self.s.count("\n", self.last_break, cursor)
             self.last_break = self.s.rfind("\n", 0, cursor) + 1
