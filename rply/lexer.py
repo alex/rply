@@ -41,7 +41,6 @@ class LexerStream(object):
     def __next__(self):
         return self.next()
 
-
     def __get_position__(self, cursor):
         """ Returns a SourcePosition object containing the current cursor position
         and the associated line and column number
@@ -58,3 +57,17 @@ class LexerStream(object):
         sp = SourcePosition(cursor, lineno, colno)
 
         return sp
+
+    def __str__(self):
+        """ Returns a string representation of the LexerStream as a list.
+
+        As a side-effect the LexerStream needs to process the whole stream,
+        thus we need to restore the positioning information after generating
+        the representation.
+        """
+
+        old_idx = self.idx
+        out = str(list(self))
+        self.idx = old_idx
+
+        return out
