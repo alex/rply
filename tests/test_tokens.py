@@ -14,3 +14,14 @@ class TestTokens(object):
     def test_repr(self):
         t = Token("VALUE", "3")
         assert repr(t) == "Token('VALUE', '3')"
+
+class TestSourcePosition(object):
+    def test_source_pos(self):
+        sp = SourcePosition(1, 2, 3)
+        assert sp.idx == 1
+        assert sp.lineno == 2
+        assert sp.colno == 3
+
+    def test_repr(self):
+        t = SourcePosition(1, 2, 3)
+        assert repr(t) == "SourcePosition(1, 2, 3)"
