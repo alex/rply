@@ -48,3 +48,18 @@ class TestLexer(object):
 
         with raises(StopIteration):
             stream.next()
+
+    def test_str(self):
+        lg = LexerGenerator()
+        lg.add("NUMBER", r"\d+")
+        lg.add("PLUS", r"\+")
+
+        l = lg.build()
+
+        stream = l.lex("2+3")
+        
+        assert str(stream) == "[Token('NUMBER', '2'), Token('PLUS', '+'), Token('NUMBER', '3')]"
+
+        t = stream.next()
+        assert t.name == "NUMBER"
+        assert t.value == "2"
