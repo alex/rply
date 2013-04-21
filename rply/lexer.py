@@ -31,8 +31,7 @@ class LexerStream(object):
         for rule in self.lexer.rules:
             match = rule.matches(self.s, self.idx)
             if match:
-                # TODO: lineno and colno
-                source_pos = SourcePosition(match.start, -1, -1)
+                source_pos = self.__get_position__(match.start)
                 token = Token(rule.name, self.s[match.start:match.end], source_pos)
                 self.idx = match.end
                 return token
@@ -41,3 +40,21 @@ class LexerStream(object):
 
     def __next__(self):
         return self.next()
+
+
+    def __get_position__(self, cursor):
+        """ Returns a SourcePosition object containing the current cursor position
+        and the associated line and column number
+
+        This implementation scans the whole string every time it is called.
+        """
+
+        lineno = self.s.count("\n", 0, cursor) + 1
+
+        colno = cursor + 1
+        if lineno > 1:
+            colno = colno - (self.s.rfind("\n", 0, cursor)+1)
+
+        sp = SourcePosition(cursor, lineno, colno)
+
+        return sp
