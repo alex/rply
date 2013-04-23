@@ -48,3 +48,62 @@ class TestLexer(object):
 
         with raises(StopIteration):
             stream.next()
+
+    def test_position(self):
+        lg = LexerGenerator()
+        lg.add("NUMBER", r"\d+")
+        lg.add("PLUS", r"\+")
+        lg.ignore(r"\s+")
+
+        l = lg.build()
+
+        stream = l.lex("2 + 3")
+        t = stream.next()
+        assert t.source_pos.lineno == 1
+        assert t.source_pos.colno == 1
+        t = stream.next()
+        assert t.source_pos.lineno == 1
+        assert t.source_pos.colno == 3
+        t = stream.next()
+        assert t.source_pos.lineno == 1
+        assert t.source_pos.colno == 5
+
+        with raises(StopIteration):
+            stream.next()
+
+        stream = l.lex("2 +\n    37")
+        t = stream.next()
+        assert t.source_pos.lineno == 1
+        assert t.source_pos.colno == 1
+        t = stream.next()
+        assert t.source_pos.lineno == 1
+        assert t.source_pos.colno == 3
+        t = stream.next()
+        assert t.source_pos.lineno == 2
+        assert t.source_pos.colno == 5
+
+        with raises(StopIteration):
+            stream.next()
+
+        stream = l.lex("\n2\n\n 2\n")
+        t = stream.next()
+        assert t.source_pos.lineno == 2
+        assert t.source_pos.colno == 1
+        t = stream.next()
+        assert t.source_pos.lineno == 4
+        assert t.source_pos.colno == 2
+
+    def test_str(self):
+        lg = LexerGenerator()
+        lg.add("NUMBER", r"\d+")
+        lg.add("PLUS", r"\+")
+
+        l = lg.build()
+
+        stream = l.lex("2+3")
+
+        assert str(stream) == "[Token('NUMBER', '2'), Token('PLUS', '+'), Token('NUMBER', '3')]"
+
+        t = stream.next()
+        assert t.name == "NUMBER"
+        assert t.value == "2"

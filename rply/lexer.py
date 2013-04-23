@@ -16,6 +16,8 @@ class LexerStream(object):
         self.lexer = lexer
         self.s = s
         self.idx = 0
+        self.lineno = 1
+        self.last_pos = 0
 
     def __iter__(self):
         return self
@@ -31,8 +33,7 @@ class LexerStream(object):
         for rule in self.lexer.rules:
             match = rule.matches(self.s, self.idx)
             if match:
-                # TODO: lineno and colno
-                source_pos = SourcePosition(match.start, -1, -1)
+                source_pos = self.get_position(match.start)
                 token = Token(rule.name, self.s[match.start:match.end], source_pos)
                 self.idx = match.end
                 return token
@@ -41,3 +42,35 @@ class LexerStream(object):
 
     def __next__(self):
         return self.next()
+
+    def get_position(self, cursor):
+        """ Returns a SourcePosition object containing the current cursor position
+        and the associated line and column number
+
+        """
+
+        self.lineno += self.s.count("\n", self.last_pos, cursor)
+
+        if self.lineno > 1:
+            colno = cursor - self.s.rfind("\n", 0, cursor)
+        else:
+            colno = cursor + 1
+
+        sp = SourcePosition(cursor, self.lineno, colno)
+        self.last_pos = cursor
+
+        return sp
+
+    def __str__(self):
+        """ Returns a string representation of the LexerStream as a list.
+
+        As a side-effect the LexerStream needs to process the whole stream,
+        thus we need to restore the positioning information after generating
+        the representation.
+        """
+
+        old_idx, old_last_pos, old_lineno = self.idx, self.last_pos, self.lineno
+        out = str(list(self))
+        self.idx, self.last_pos, self.lineno =old_idx, old_last_pos, old_lineno
+
+        return out
