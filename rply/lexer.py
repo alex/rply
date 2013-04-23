@@ -16,6 +16,8 @@ class LexerStream(object):
         self.lexer = lexer
         self.s = s
         self.idx = 0
+        self.lineno = 1
+        self.last_pos = 0
 
     def __iter__(self):
         return self
@@ -45,16 +47,17 @@ class LexerStream(object):
         """ Returns a SourcePosition object containing the current cursor position
         and the associated line and column number
 
-        This implementation scans the whole string every time it is called.
         """
 
-        lineno = self.s.count("\n", 0, cursor) + 1
+        self.lineno += self.s.count("\n", self.last_pos, cursor)
 
-        colno = cursor + 1
-        if lineno > 1:
-            colno = colno - (self.s.rfind("\n", 0, cursor)+1)
+        if self.lineno > 1:
+            colno = cursor - self.s.rfind("\n", 0, cursor)
+        else:
+            colno = cursor + 1
 
-        sp = SourcePosition(cursor, lineno, colno)
+        sp = SourcePosition(cursor, self.lineno, colno)
+        self.last_pos = cursor
 
         return sp
 
@@ -66,8 +69,8 @@ class LexerStream(object):
         the representation.
         """
 
-        old_idx = self.idx
+        old_idx, old_last_pos, old_lineno = self.idx, self.last_pos, self.lineno
         out = str(list(self))
-        self.idx = old_idx
+        self.idx, self.last_pos, self.lineno =old_idx, old_last_pos, old_lineno
 
         return out
