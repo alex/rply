@@ -24,4 +24,4 @@ class TestSourcePosition(object):
 
     def test_repr(self):
         t = SourcePosition(1, 2, 3)
-        assert repr(t) == "SourcePosition(1, 2, 3)"
+        assert repr(t) == "SourcePosition(idx=1, lineno=2, colno=3)"

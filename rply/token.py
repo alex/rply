@@ -33,6 +33,6 @@ class SourcePosition(object):
         self.colno = colno
 
     def __repr__(self):
-        return "SourcePosition({0}, {1}, {2})".format(self.idx,
-                                                      self.lineno,
-                                                      self.colno)
+        return "SourcePosition(idx={0}, lineno={1}, colno={2})".format(self.idx,
+                                                                       self.lineno,
+                                                                       self.colno)
