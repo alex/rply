@@ -20,7 +20,8 @@ class TestParser(BaseTests):
 
         parser = pg.build()
 
-        assert parser.parse(iter([Token("VALUE", "abc")])) == Token("VALUE", "abc")
+        token = parser.parse(iter([Token("VALUE", "abc")]))
+        assert token == Token("VALUE", "abc")
 
     def test_arithmetic(self):
         pg = ParserGenerator(["NUMBER", "PLUS"])

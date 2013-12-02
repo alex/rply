@@ -123,7 +123,8 @@ if rpython:
 
             list_repr = FixedSizeListRepr(rtyper, rtyper.getrepr(model.SomeInteger(nonneg=True)))
             list_repr._setup_repr()
-            self.lowleveltype = lltype.Ptr(lltype.GcStruct("RULE",
+            self.lowleveltype = lltype.Ptr(lltype.GcStruct(
+                "RULE",
                 ("name", lltype.Ptr(STR)),
                 ("code", list_repr.lowleveltype),
             ))
@@ -154,7 +155,8 @@ if rpython:
             c_MATCH_CONTEXT_INIT = hop.inputconst(lltype.Void, self.match_context_init_repr)
             c_MATCH_CONTEXT = hop.inputconst(lltype.Void, self.match_context_repr)
 
-            return hop.gendirectcall(LLRule.ll_matches,
+            return hop.gendirectcall(
+                LLRule.ll_matches,
                 c_MATCHTYPE, c_MATCH_INIT, c_MATCH_CONTEXTTYPE,
                 c_MATCH_CONTEXT_INIT, c_MATCH_CONTEXT, v_rule, v_s, v_pos
             )
@@ -170,13 +172,15 @@ if rpython:
             s = hlstr(s)
             assert pos >= 0
             ctx = instantiate(MATCH_CONTEXTTYPE)
-            hlinvoke(MATCH_CONTEXT_INIT, rsre_core.StrMatchContext.__init__,
+            hlinvoke(
+                MATCH_CONTEXT_INIT, rsre_core.StrMatchContext.__init__,
                 ctx, ll_rule.code, hlstr(s), pos, len(s), 0
             )
             matched = hlinvoke(MATCH_CONTEXT, rsre_core.match_context, ctx)
             if matched:
                 match = instantiate(MATCHTYPE)
-                hlinvoke(MATCH_INIT, Match.__init__,
+                hlinvoke(
+                    MATCH_INIT, Match.__init__,
                     match, ctx.match_start, ctx.match_end
                 )
                 return match

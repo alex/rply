@@ -39,7 +39,9 @@ class Grammar(object):
             try:
                 prod_prec = self.precedence[precedence]
             except KeyError:
-                raise ParserGeneratorError("Precedence %r doesn't exist" % precedence)
+                raise ParserGeneratorError(
+                    "Precedence %r doesn't exist" % precedence
+                )
 
         pnumber = len(self.productions)
         self.nonterminals.setdefault(prod_name, [])
@@ -57,9 +59,15 @@ class Grammar(object):
 
     def set_precedence(self, term, assoc, level):
         if term in self.precedence:
-            raise ParserGeneratorError("Precedence already specified for %s" % term)
+            raise ParserGeneratorError(
+                "Precedence already specified for %s" % term
+            )
         if assoc not in ["left", "right", "nonassoc"]:
-            raise ParserGeneratorError("Precedence must be one of left, right, nonassoc; not %s" % assoc)
+            raise ParserGeneratorError(
+                "Precedence must be one of left, right, nonassoc; not %s" % (
+                    assoc
+                )
+            )
         self.precedence[term] = (assoc, level)
 
     def set_start(self):
@@ -69,7 +77,11 @@ class Grammar(object):
         self.start = start
 
     def unused_terminals(self):
-        return [t for t, prods in iteritems(self.terminals) if not prods and t != "error"]
+        return [
+            t
+            for t, prods in iteritems(self.terminals)
+            if not prods and t != "error"
+        ]
 
     def unused_productions(self):
         return [p for p, prods in iteritems(self.nonterminals) if not prods]
