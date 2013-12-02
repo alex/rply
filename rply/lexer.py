@@ -25,9 +25,8 @@ class LexerStream(object):
     def _update_pos(self, match):
         self.idx = match.end
         self._lineno += self.s.count("\n", match.start, match.end)
-        try:
-            last_nl = self.s.rindex("\n", 0, match.start)
-        except ValueError:
+        last_nl = self.s.rfind("\n", 0, match.start)
+        if last_nl < 0:
             return match.start + 1
         else:
             return match.start - last_nl
