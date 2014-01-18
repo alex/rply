@@ -17,7 +17,7 @@ try:
 except ImportError:
     rpython = None
 
-from rply.lexer import Lexer
+from rply.lexer import Lexer, StackedLexer
 
 
 class Rule(object):
@@ -54,6 +54,47 @@ class LexerGenerator(object):
 
     def build(self):
         return Lexer(self.rules, self.ignore_rules)
+
+
+class TransitionRule(Rule):
+    def __init__(self, name, pattern, transition=None, target=None):
+        Rule.__init__(self, name, pattern)
+
+        self.transition = transition
+        self.target = target
+
+
+class LexerState(object):
+    def __init__(self):
+        self.rules = []
+        self.ignore_rules = []
+
+    def add(self, name, pattern, transition=None, target=None):
+        self.rules.append(TransitionRule(name, pattern, transition, target))
+
+    def ignore(self, pattern, transition=None, target=None):
+        self.ignore_rules.append(TransitionRule('', pattern, transition, target))
+
+
+class StackedLexerGenerator(object):
+    def __init__(self, initial_state='start'):
+        self.initial_state = initial_state
+
+        self.states = {initial_state: LexerState()}
+
+    def add(self, *args, **kwargs):
+        self.states[self.initial_state].add(*args, **kwargs)
+
+    def ignore(self, *args, **kwargs):
+        self.states[self.initial_state].ignore(*args, **kwargs)
+
+    def build(self):
+        return StackedLexer(self.states[self.initial_state], self.states)
+
+    def add_state(self, name):
+        state = self.states[name] = LexerState()
+        return state
+
 
 if rpython:
     class RuleEntry(ExtRegistryEntry):

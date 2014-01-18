@@ -11,6 +11,15 @@ class Lexer(object):
         return LexerStream(self, s)
 
 
+class StackedLexer(object):
+    def __init__(self, start, states):
+        self.start = start
+        self.states = states
+
+    def lex(self, s):
+        return StackedLexerStream(self, s)
+
+
 class LexerStream(object):
     def __init__(self, lexer, s):
         self.lexer = lexer
@@ -53,3 +62,46 @@ class LexerStream(object):
 
     def __next__(self):
         return self.next()
+
+
+class StackedLexerStream(LexerStream):
+    def __init__(self, lexer, s):
+        LexerStream.__init__(self, lexer, s)
+
+        self.states = [lexer.start]
+
+    @property
+    def current_state(self):
+        return self.states[-1]
+
+    def _make_transition(self, rule):
+        if rule.transition is None:
+            return
+        elif rule.transition == 'push':
+            self.states.append(self.lexer.states[rule.target])
+        elif rule.transition == 'pop':
+            self.states.pop()
+        else:
+            raise NotImplementedError
+
+    def next(self):
+        if self.idx >= len(self.s):
+            raise StopIteration
+        for rule in self.current_state.ignore_rules:
+            match = rule.matches(self.s, self.idx)
+            if match:
+                self._update_pos(match)
+                self._make_transition(rule)
+                return self.next()
+        for rule in self.current_state.rules:
+            match = rule.matches(self.s, self.idx)
+            if match:
+                colno = self._update_pos(match)
+                source_pos = SourcePosition(match.start, self._lineno, colno)
+                token = Token(
+                    rule.name, self.s[match.start:match.end], source_pos
+                )
+                self._make_transition(rule)
+                return token
+        else:
+            raise LexingError(None, SourcePosition(self.idx, -1, -1))
