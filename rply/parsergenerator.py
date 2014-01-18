@@ -123,6 +123,7 @@ class ParserGenerator(object):
         g.compute_first()
         g.compute_follow()
 
+        # win32 temp directories are already per-user
         if os.name == "nt":
             cache_file = os.path.join(
                 tempfile.gettempdir(),
