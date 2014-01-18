@@ -123,18 +123,26 @@ class ParserGenerator(object):
         g.compute_first()
         g.compute_follow()
 
-        cache_file = os.path.join(
-            tempfile.gettempdir(),
-            "rply-%s-%s-%s-%s.json" % (self.VERSION, os.getuid(), self.cache_id, self.compute_grammar_hash(g))
-        )
+        if os.name == "nt":
+            cache_file = os.path.join(
+                tempfile.gettempdir(),
+                "rply-%s-%s-%s.json" % (self.VERSION, self.cache_id, self.compute_grammar_hash(g))
+            )
+        else:
+            cache_file = os.path.join(
+                tempfile.gettempdir(),
+                "rply-%s-%s-%s-%s.json" % (self.VERSION, os.getuid(), self.cache_id, self.compute_grammar_hash(g))
+            )
         table = None
         if os.path.exists(cache_file):
             with open(cache_file) as f:
                 data = json.load(f)
                 stat_result = os.fstat(f.fileno())
             if (
-                stat_result.st_uid == os.getuid() and
-                stat.S_IMODE(stat_result.st_mode) == 0o0600
+                os.name == "nt" or (
+                    stat_result.st_uid == os.getuid() and
+                    stat.S_IMODE(stat_result.st_mode) == 0o0600
+                )
             ):
                 if self.data_is_valid(g, data):
                     table = LRTable.from_cache(g, data)
