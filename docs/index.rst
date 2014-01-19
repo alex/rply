@@ -102,12 +102,6 @@ exception. It receives the ``Token`` object that the parser errored on.
     def error_handler(token):
         raise ValueError("Ran into a %s where it wasn't expected" % token.gettokentype())
 
-Python compatibility
---------------------
-
-RPly is tested and known to work under Python 2.6, 2.7, 3.1, and 3.2. It is
-also valid RPython for PyPy checkouts from ``6c642ae7a0ea`` onwards.
-
 
 API Documentation
 -----------------
@@ -120,11 +114,3 @@ take a look at one of these documents:
 
    api/rply.rst
    api/token.rst
-
-
-Links
------
-
-* `Source code and issue tracker <https://github.com/alex/rply/>`_
-* `PyPI releases <https://pypi.python.org/pypi/rply>`_
-* `Talk at PyCon US 2013: So you want to write an interpreter? <http://pyvideo.org/video/1694/so-you-want-to-write-an-interpreter>`_
