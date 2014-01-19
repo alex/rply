@@ -87,12 +87,13 @@ like from each production method.
 Error handling
 --------------
 
-By default, when a parsing error is encountered, an ``rply.ParsingError`` is
-raised, it has a method ``getsourcepos()``, which returns an
-``rply.token.SourcePosition`` object.
+By default, when a parsing error is encountered, an :exc:`rply.ParsingError` is
+raised, it has a method :meth:`~rply.ParsingError.getsourcepos()`, which
+returns an :class:`rply.token.SourcePosition` object.
 
 You may also provide an error handler, which, at the moment, must raise an
-exception. It receives the ``Token`` object that the parser errored on.
+exception. It receives the :class:`~rply.Token` object that the parser errored
+on.
 
 .. code:: python
 
