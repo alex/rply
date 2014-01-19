@@ -114,3 +114,13 @@ take a look at one of these documents:
 
    api/rply.rst
    api/token.rst
+
+
+Additional Information
+----------------------
+
+Everything not directly related to the usage of RPly.
+
+.. toctree::
+
+   additional/license.rst
