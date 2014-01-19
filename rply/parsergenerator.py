@@ -18,6 +18,19 @@ LARGE_VALUE = sys.maxsize
 
 
 class ParserGenerator(object):
+    """
+    A ParserGenerator represents a set of production rules, that define a
+    sequence of terminals and non-terminals to be replaced with a non-terminal,
+    which can be turned into a parser.
+
+    :param tokens: A list of token (non-terminal) names.
+    :param precedence: A list of tuples defining the order of operation for
+                       avoiding ambiguity, consisting of a string defining
+                       associativity (left, right or nonassoc) and a list of
+                       token names with the same associativity and level of
+                       precedence.
+    :param cache_id: A string specifying an ID for caching.
+    """
     VERSION = 1
 
     def __init__(self, tokens, precedence=[], cache_id=None):
@@ -31,6 +44,36 @@ class ParserGenerator(object):
         self.error_handler = None
 
     def production(self, rule, precedence=None):
+        """
+        A decorator that defines a production rule and registers the decorated
+        function to be called with the terminals and non-terminals matched by
+        that rule.
+
+        A `rule` should consist of a name defining the non-terminal returned
+        by the decorated function and a sequence of non-terminals and terminals
+        that are supposed to be replaced::
+
+            replacing_non_terminal : ATERMINAL non_terminal
+
+        The name of the non-terminal replacing the sequence is on the left,
+        separated from the sequence by a colon. The whitespace around the colon
+        is required.
+
+        Knowing this we can define productions::
+
+            pg = ParserGenerator(['NUMBER ADD'])
+
+            @pg.production('number : NUMBER')
+            def expr_number(p):
+                return BoxInt(int(p[0].getstr()))
+
+            @pg.production('expr : number ADD number')
+            def expr_add(p):
+                return BoxInt(p[0].getint() + p[2].getint())
+
+        If a state was passed to the parser, the decorated function is
+        additionally called with that state as first argument.
+        """
         parts = rule.split()
         production_name = parts[0]
         if parts[1] != ":":
@@ -43,6 +86,13 @@ class ParserGenerator(object):
         return inner
 
     def error(self, func):
+        """
+        Sets the error handler that is called with the state (if passed to the
+        parser) and the token the parser errored on.
+
+        Currently error handlers must raise an exception. If an error handler
+        is not defined, a :exc:`rply.ParsingError` will be raised.
+        """
         self.error_handler = func
         return func
 

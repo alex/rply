@@ -108,6 +108,20 @@ Python compatibility
 RPly is tested and known to work under Python 2.6, 2.7, 3.1, and 3.2. It is
 also valid RPython for PyPy checkouts from ``6c642ae7a0ea`` onwards.
 
+
+API Documentation
+-----------------
+
+The API documentation provides detailed information on the functions, classes
+and methods, provided by RPly. If you are looking for something specific,
+take a look at one of these documents:
+
+.. toctree::
+
+   api/rply.rst
+   api/token.rst
+
+
 Links
 -----
 
