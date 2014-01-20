@@ -104,6 +104,14 @@ on.
         raise ValueError("Ran into a %s where it wasn't expected" % token.gettokentype())
 
 
+User's Guide
+------------
+
+.. toctree::
+
+   users-guide/lexers.rst
+
+
 API Documentation
 -----------------
 
