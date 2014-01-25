@@ -167,3 +167,28 @@ error handler:
 
 The `token` passed to the error handler will be the token the parser errored
 on.
+
+
+Maintaining State
+-----------------
+
+Sometimes it can be useful to have additional state within the parser, for
+example as a way to pass information to the parser about the name of the file
+currently being parsed.
+
+In order to do this we simply define a state object to pass around:
+
+.. code:: python
+
+    class ParserState(object):
+        def __init__(self, filename):
+            self.filename = filename
+
+We can pass `ParserState` objects to the parser simply like this:
+
+.. code:: python
+
+    parser.parse(lexer.lex(source), state=ParserState('foo.py'))
+
+This will call every production rule and the error handler with the
+`ParserState` instance as first argument.
