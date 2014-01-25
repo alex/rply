@@ -140,3 +140,30 @@ as defined by our grammar::
     2
     >>> parser.parse(lexer.lex('1 + 2 * 3')).eval()
     7
+
+
+Error Handling
+--------------
+
+As long as we parse code that is well formed according to our grammar, all is
+fine but one of the more difficult problems in writing a parser is handling
+errors.
+
+Per default in case of an error you get a :exc:`rply.ParsingError`::
+
+    >>> parser.parse(lexer.lex('1 1'))
+
+This error will not provide any information apart from the position at which
+it occurred accessible through :meth:`~rply.ParsingError.getsourcepos`.
+
+While it is not possible to recover from an error, you can define your own
+error handler:
+
+.. code:: python
+
+    @pg.error
+    def error_handler(token):
+        raise ValueError("Ran into a %s where it was't expected" % token.gettokentype())
+
+The `token` passed to the error handler will be the token the parser errored
+on.
