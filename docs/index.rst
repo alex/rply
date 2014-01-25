@@ -110,6 +110,7 @@ User's Guide
 .. toctree::
 
    users-guide/lexers.rst
+   users-guide/parsers.rst
 
 
 API Documentation
