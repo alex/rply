@@ -107,7 +107,7 @@ Having covered all that we actually start working on the parser itself:
     def expression_parens(p):
         return p[1]
 
-    @pg.production('expression : expression ADD expression')
+    @pg.production('expression : expression PLUS expression')
     @pg.production('expression : expression MINUS expression')
     @pg.production('expression : expression MUL expression')
     @pg.production('expression : expression DIV expression')
