@@ -70,8 +70,7 @@ class StackedLexerStream(LexerStream):
 
         self.states = [lexer.start]
 
-    @property
-    def current_state(self):
+    def _get_current_state(self):
         return self.states[-1]
 
     def _make_transition(self, rule):
@@ -87,13 +86,13 @@ class StackedLexerStream(LexerStream):
     def next(self):
         if self.idx >= len(self.s):
             raise StopIteration
-        for rule in self.current_state.ignore_rules:
+        for rule in self._get_current_state().ignore_rules:
             match = rule.matches(self.s, self.idx)
             if match:
                 self._update_pos(match)
                 self._make_transition(rule)
                 return self.next()
-        for rule in self.current_state.rules:
+        for rule in self._get_current_state().rules:
             match = rule.matches(self.s, self.idx)
             if match:
                 colno = self._update_pos(match)
