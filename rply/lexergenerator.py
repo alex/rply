@@ -57,10 +57,11 @@ class LexerState(object):
 
 class LexerGenerator(object):
     """
-    A LexerGenerator represents a set of rules that match pieces of text that
-    should either be turned into tokens or ignored by the lexer.
-
-    Rules are added using the :meth:`add` and :meth:`ignore` methods:
+    A LexerGenerator represents a set of state objects, each state consists of
+    a set of rules that match pieces of text that should either be turned into
+    tokens or ignored by the lexer. For convenience an initial state with the
+    name passed as `initial_state` is created for you, to which you can add
+    rules using the :meth:`add` and :meth:`ignore` methods:
 
     >>> from rply import LexerGenerator
     >>> lg = LexerGenerator()
@@ -93,6 +94,12 @@ class LexerGenerator(object):
         """
         Adds a rule with the given `name` and `pattern`. In case of ambiguity,
         the first rule added wins.
+
+        If you want the state of the parser to change after this rule has
+        matched, you can perform a transition by passing ``"push"`` or
+        ``"pop"``, to either push a state to the stack of states or to pop a
+        state from that stack. If you do push a state to the stack, you need
+        to pass the name of that state as `target`.
         """
         self.states[self.initial_state].add(*args, **kwargs)
 
@@ -100,6 +107,8 @@ class LexerGenerator(object):
         """
         Adds a rule whose matched value will be ignored. Ignored rules will be
         matched before regular ones.
+
+        See :meth:`add` on the `transition` and `target` argument.
         """
         self.states[self.initial_state].ignore(*args, **kwargs)
 
@@ -112,6 +121,11 @@ class LexerGenerator(object):
         return Lexer(self.states[self.initial_state], self.states)
 
     def add_state(self, name):
+        """
+        Adds a state with the given `name` and returns it. The returned state
+        has `add` and `ignore` methods equivalent to :meth:`add` and
+        :meth:`ignore`.
+        """
         state = self.states[name] = LexerState()
         return state
 
