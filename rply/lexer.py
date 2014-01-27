@@ -3,21 +3,12 @@ from rply.token import SourcePosition, Token
 
 
 class Lexer(object):
-    def __init__(self, rules, ignore_rules):
-        self.rules = rules
-        self.ignore_rules = ignore_rules
-
-    def lex(self, s):
-        return LexerStream(self, s)
-
-
-class StackedLexer(object):
     def __init__(self, start, states):
         self.start = start
         self.states = states
 
     def lex(self, s):
-        return StackedLexerStream(self, s)
+        return LexerStream(self, s)
 
 
 class LexerStream(object):
@@ -28,47 +19,10 @@ class LexerStream(object):
 
         self._lineno = 1
 
+        self.states = [lexer.start]
+
     def __iter__(self):
         return self
-
-    def _update_pos(self, match):
-        self.idx = match.end
-        self._lineno += self.s.count("\n", match.start, match.end)
-        last_nl = self.s.rfind("\n", 0, match.start)
-        if last_nl < 0:
-            return match.start + 1
-        else:
-            return match.start - last_nl
-
-    def next(self):
-        if self.idx >= len(self.s):
-            raise StopIteration
-        for rule in self.lexer.ignore_rules:
-            match = rule.matches(self.s, self.idx)
-            if match:
-                self._update_pos(match)
-                return self.next()
-        for rule in self.lexer.rules:
-            match = rule.matches(self.s, self.idx)
-            if match:
-                colno = self._update_pos(match)
-                source_pos = SourcePosition(match.start, self._lineno, colno)
-                token = Token(
-                    rule.name, self.s[match.start:match.end], source_pos
-                )
-                return token
-        else:
-            raise LexingError(None, SourcePosition(self.idx, -1, -1))
-
-    def __next__(self):
-        return self.next()
-
-
-class StackedLexerStream(LexerStream):
-    def __init__(self, lexer, s):
-        LexerStream.__init__(self, lexer, s)
-
-        self.states = [lexer.start]
 
     def _get_current_state(self):
         return self.states[-1]
@@ -80,8 +34,15 @@ class StackedLexerStream(LexerStream):
             self.states.append(self.lexer.states[rule.target])
         elif rule.transition == 'pop':
             self.states.pop()
+
+    def _update_pos(self, match):
+        self.idx = match.end
+        self._lineno += self.s.count("\n", match.start, match.end)
+        last_nl = self.s.rfind("\n", 0, match.start)
+        if last_nl < 0:
+            return match.start + 1
         else:
-            raise NotImplementedError
+            return match.start - last_nl
 
     def next(self):
         if self.idx >= len(self.s):
@@ -104,3 +65,6 @@ class StackedLexerStream(LexerStream):
                 return token
         else:
             raise LexingError(None, SourcePosition(self.idx, -1, -1))
+
+    def __next__(self):
+        return self.next()

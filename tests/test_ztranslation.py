@@ -5,7 +5,7 @@ try:
 except ImportError:
     py.test.skip("Needs RPython to be on the PYTHONPATH")
 
-from rply import ParserGenerator, LexerGenerator, StackedLexerGenerator, Token
+from rply import ParserGenerator, LexerGenerator, Token
 from rply.errors import ParserGeneratorWarning
 
 from .base import BaseTests
@@ -51,7 +51,7 @@ class BaseTestTranslation(BaseTests):
         assert self.run(f, [14]) == 42
 
     def test_stacked_lexer(self):
-        lg = StackedLexerGenerator()
+        lg = LexerGenerator()
         lg.add('NUMBER', r'\d+')
         lg.add('ADD', r'\+')
         lg.add('COMMENT_START', r'\(#', transition='push', target='comment')

@@ -17,13 +17,15 @@ try:
 except ImportError:
     rpython = None
 
-from rply.lexer import Lexer, StackedLexer
+from rply.lexer import Lexer
 
 
 class Rule(object):
-    def __init__(self, name, pattern):
+    def __init__(self, name, pattern, transition=None, target=None):
         self.name = name
         self.re = re.compile(pattern)
+        self.transition = transition
+        self.target = target
 
     def _freeze_(self):
         return True
@@ -41,42 +43,19 @@ class Match(object):
         self.end = end
 
 
-class LexerGenerator(object):
-    def __init__(self):
-        self.rules = []
-        self.ignore_rules = []
-
-    def add(self, name, pattern):
-        self.rules.append(Rule(name, pattern))
-
-    def ignore(self, pattern):
-        self.ignore_rules.append(Rule("", pattern))
-
-    def build(self):
-        return Lexer(self.rules, self.ignore_rules)
-
-
-class TransitionRule(Rule):
-    def __init__(self, name, pattern, transition=None, target=None):
-        Rule.__init__(self, name, pattern)
-
-        self.transition = transition
-        self.target = target
-
-
 class LexerState(object):
     def __init__(self):
         self.rules = []
         self.ignore_rules = []
 
     def add(self, name, pattern, transition=None, target=None):
-        self.rules.append(TransitionRule(name, pattern, transition, target))
+        self.rules.append(Rule(name, pattern, transition, target))
 
     def ignore(self, pattern, transition=None, target=None):
-        self.ignore_rules.append(TransitionRule('', pattern, transition, target))
+        self.ignore_rules.append(Rule('', pattern, transition, target))
 
 
-class StackedLexerGenerator(object):
+class LexerGenerator(object):
     def __init__(self, initial_state='start'):
         self.initial_state = initial_state
 
@@ -89,7 +68,7 @@ class StackedLexerGenerator(object):
         self.states[self.initial_state].ignore(*args, **kwargs)
 
     def build(self):
-        return StackedLexer(self.states[self.initial_state], self.states)
+        return Lexer(self.states[self.initial_state], self.states)
 
     def add_state(self, name):
         state = self.states[name] = LexerState()
@@ -138,7 +117,7 @@ if rpython:
             return model.SomeInstance(getbookkeeper().getuniqueclassdef(Match), can_be_None=True)
 
         def getattr(self, s_attr):
-            if s_attr.is_constant() and s_attr.const == "name":
+            if s_attr.is_constant() and s_attr.const in ["name", "transition", "target"]:
                 return model.SomeString()
             return super(SomeRule, self).getattr(s_attr)
 
@@ -167,6 +146,8 @@ if rpython:
             self.lowleveltype = lltype.Ptr(lltype.GcStruct(
                 "RULE",
                 ("name", lltype.Ptr(STR)),
+                ("transition", lltype.Ptr(STR)),
+                ("target", lltype.Ptr(STR)),
                 ("code", list_repr.lowleveltype),
             ))
 
@@ -174,6 +155,8 @@ if rpython:
             if rule not in self.ll_rule_cache:
                 ll_rule = lltype.malloc(self.lowleveltype.TO)
                 ll_rule.name = llstr(rule.name)
+                ll_rule.transition = llstr(rule.transition)
+                ll_rule.target = llstr(rule.target)
                 code = get_code(rule.re.pattern)
                 ll_rule.code = lltype.malloc(self.lowleveltype.TO.code.TO, len(code))
                 for i, c in enumerate(code):
@@ -186,6 +169,12 @@ if rpython:
             if s_attr.is_constant() and s_attr.const == "name":
                 v_rule = hop.inputarg(self, arg=0)
                 return hop.gendirectcall(LLRule.ll_get_name, v_rule)
+            elif s_attr.is_constant() and s_attr.const == "transition":
+                v_rule = hop.inputarg(self, arg=0)
+                return hop.gendirectcall(LLRule.ll_get_transition, v_rule)
+            elif s_attr.is_constant() and s_attr.const == "target":
+                v_rule = hop.inputarg(self, arg=0)
+                return hop.gendirectcall(LLRule.ll_get_target, v_rule)
             return super(RuleRepr, self).rtype_getattr(hop)
 
         def rtype_method_matches(self, hop):
@@ -206,6 +195,14 @@ if rpython:
         @staticmethod
         def ll_get_name(ll_rule):
             return ll_rule.name
+
+        @staticmethod
+        def ll_get_transition(ll_rule):
+            return ll_rule.transition
+
+        @staticmethod
+        def ll_get_target(ll_rule):
+            return ll_rule.target
 
         @staticmethod
         def ll_matches(MATCHTYPE, MATCH_INIT, MATCH_CONTEXTTYPE,

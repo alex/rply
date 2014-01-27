@@ -1,13 +1,11 @@
 from pytest import raises
 
-from rply import LexerGenerator, StackedLexerGenerator
+from rply import LexerGenerator
 
 
 class TestLexer(object):
-    lexer_class = LexerGenerator
-
     def test_simple(self):
-        lg = self.lexer_class()
+        lg = LexerGenerator()
         lg.add("NUMBER", r"\d+")
         lg.add("PLUS", r"\+")
 
@@ -29,7 +27,7 @@ class TestLexer(object):
             stream.next()
 
     def test_ignore(self):
-        lg = self.lexer_class()
+        lg = LexerGenerator()
         lg.add("NUMBER", r"\d+")
         lg.add("PLUS", r"\+")
         lg.ignore(r"\s+")
@@ -52,7 +50,7 @@ class TestLexer(object):
             stream.next()
 
     def test_position(self):
-        lg = self.lexer_class()
+        lg = LexerGenerator()
         lg.add("NUMBER", r"\d+")
         lg.add("PLUS", r"\+")
         lg.ignore(r"\s+")
@@ -85,12 +83,8 @@ class TestLexer(object):
         with raises(StopIteration):
             stream.next()
 
-
-class TestStackedLexer(TestLexer):
-    lexer_class = StackedLexerGenerator
-
     def test_transitions(self):
-        lg = self.lexer_class()
+        lg = LexerGenerator()
         lg.add('NUMBER', r'\d+')
         lg.add('ADD', r'\+')
         lg.add('COMMENT_START', r'\(#', transition='push', target='comment')
