@@ -1,3 +1,5 @@
 *.py[co]
 
 *.egg-info
+.tox
+docs/_build

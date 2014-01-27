@@ -56,18 +56,59 @@ class LexerState(object):
 
 
 class LexerGenerator(object):
+    """
+    A LexerGenerator represents a set of rules that match pieces of text that
+    should either be turned into tokens or ignored by the lexer.
+
+    Rules are added using the :meth:`add` and :meth:`ignore` methods:
+
+    >>> from rply import LexerGenerator
+    >>> lg = LexerGenerator()
+    >>> lg.add('NUMBER', r'\d+')
+    >>> lg.add('ADD', r'\+')
+    >>> lg.ignore(r'\s+')
+
+    You can then build a lexer with which you can lex a string to produce an
+    iterator yielding tokens:
+
+    >>> lexer = lg.build()
+    >>> iterator = lexer.lex('1 + 1')
+    >>> iterator.next()
+    Token('NUMBER', '1')
+    >>> iterator.next()
+    Token('ADD', '+')
+    >>> iterator.next()
+    Token('NUMBER', '1')
+    >>> iterator.next()
+    Traceback (most recent call last):
+    ...
+    StopIteration
+    """
     def __init__(self, initial_state='start'):
         self.initial_state = initial_state
 
         self.states = {initial_state: LexerState()}
 
     def add(self, *args, **kwargs):
+        """
+        Adds a rule with the given `name` and `pattern`. In case of ambiguity,
+        the first rule added wins.
+        """
         self.states[self.initial_state].add(*args, **kwargs)
 
     def ignore(self, *args, **kwargs):
+        """
+        Adds a rule whose matched value will be ignored. Ignored rules will be
+        matched before regular ones.
+        """
         self.states[self.initial_state].ignore(*args, **kwargs)
 
     def build(self):
+        """
+        Returns a lexer instance, which provides a `lex` method that must be
+        called with a string and returns an iterator yielding
+        :class:`~rply.Token` instances.
+        """
         return Lexer(self.states[self.initial_state], self.states)
 
     def add_state(self, name):
