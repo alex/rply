@@ -162,11 +162,15 @@ error handler:
 .. code:: python
 
     @pg.error
-    def error_handler(token):
-        raise ValueError("Ran into a %s where it was't expected" % token.gettokentype())
+    def error_handler(token, expected, state):
+        exp = ', '.join(sorted(expected))
+        msg = 'Ran into %s where it was expecting any of %s' % (token, exp)
+        raise ValueError(msg)
 
 The `token` passed to the error handler will be the token the parser errored
-on.
+on, whereas the set of `expected` values indicates which tokens _would_
+have been considered valid.  The `state` argument will be whatever state
+you kept while parsing (see next section for details), or `None` otherwise.
 
 
 Maintaining State

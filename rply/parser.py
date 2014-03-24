@@ -52,10 +52,8 @@ class LRParser(object):
             else:
                 # TODO: actual error handling here
                 if self.error_handler is not None:
-                    if state is None:
-                        self.error_handler(lookahead)
-                    else:
-                        self.error_handler(state, lookahead)
+                    expected = self.lr_table.lr_action[current_state].keys()
+                    self.error_handler(lookahead, expected, state)
                     raise AssertionError("For now, error_handler must raise.")
                 else:
                     raise ParsingError(None, lookahead.getsourcepos())
