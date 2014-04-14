@@ -198,9 +198,12 @@ class ParserGenerator(object):
         table = None
 
         if GAE_RUNTIME:
-            data = json.loads(memcache.get(cache_key, namespace="rply"))
-            if self.data_is_valid(g, data):
-                table = LRTable.from_cache(g, data)
+            try:
+                data = json.loads(memcache.get(cache_key, namespace="rply"))
+                if self.data_is_valid(g, data):
+                    table = LRTable.from_cache(g, data)
+            except TypeError:
+                pass
         else:
             if os.path.exists(cache_file):
                 with open(cache_file) as f:
@@ -218,7 +221,7 @@ class ParserGenerator(object):
         if table is None:
             table = LRTable.from_grammar(g)
             if GAE_RUNTIME:
-                memcache.set(cache_key, json.dumps(self.serialize_table(table),f), namespace="rply")
+                memcache.set(cache_key, json.dumps(self.serialize_table(table)), namespace="rply")
             else:
                 fd = os.open(cache_file, os.O_RDWR | os.O_CREAT | os.O_EXCL, 0o0600)
                 with os.fdopen(fd, "w") as f:
