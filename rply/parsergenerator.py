@@ -198,7 +198,7 @@ class ParserGenerator(object):
         table = None
 
         if GAE_RUNTIME:
-            data = json.loads(memchache.get(cache_key, namespace="rply"))
+            data = json.loads(memcache.get(cache_key, namespace="rply"))
             if self.data_is_valid(g, data):
                 table = LRTable.from_cache(g, data)
         else:
