@@ -13,6 +13,13 @@ from rply.grammar import Grammar
 from rply.parser import LRParser
 from rply.utils import IdentityDict, Counter, iteritems, itervalues
 
+# If we're running under Google App Engine, then use memcache instead of tempfile
+try:                
+    from google.appengine.api import memcache
+    GAE_RUNTIME = True
+except:         
+    GAE_RUNTIME = False
+
 
 LARGE_VALUE = sys.maxsize
 
@@ -173,35 +180,50 @@ class ParserGenerator(object):
         g.compute_first()
         g.compute_follow()
 
-        # win32 temp directories are already per-user
-        if os.name == "nt":
-            cache_file = os.path.join(
-                tempfile.gettempdir(),
-                "rply-%s-%s-%s.json" % (self.VERSION, self.cache_id, self.compute_grammar_hash(g))
-            )
+
+        if GAE_RUNTIME:
+            cache_key = "rply-%s-%s-%s" % (self.VERSION, self.cache_id, self.compute_grammar_hash(g))
         else:
-            cache_file = os.path.join(
-                tempfile.gettempdir(),
-                "rply-%s-%s-%s-%s.json" % (self.VERSION, os.getuid(), self.cache_id, self.compute_grammar_hash(g))
-            )
-        table = None
-        if os.path.exists(cache_file):
-            with open(cache_file) as f:
-                data = json.load(f)
-                stat_result = os.fstat(f.fileno())
-            if (
-                os.name == "nt" or (
-                    stat_result.st_uid == os.getuid() and
-                    stat.S_IMODE(stat_result.st_mode) == 0o0600
+            # win32 temp directories are already per-user
+            if os.name == "nt":
+                cache_file = os.path.join(
+                    tempfile.gettempdir(),
+                    "rply-%s-%s-%s.json" % (self.VERSION, self.cache_id, self.compute_grammar_hash(g))
                 )
-            ):
-                if self.data_is_valid(g, data):
-                    table = LRTable.from_cache(g, data)
+            else:
+                cache_file = os.path.join(
+                    tempfile.gettempdir(),
+                    "rply-%s-%s-%s-%s.json" % (self.VERSION, os.getuid(), self.cache_id, self.compute_grammar_hash(g))
+                )
+        table = None
+
+        if GAE_RUNTIME:
+            data = json.loads(memchache.get(cache_key, namespace="rply"))
+            if self.data_is_valid(g, data):
+                table = LRTable.from_cache(g, data)
+        else:
+            if os.path.exists(cache_file):
+                with open(cache_file) as f:
+                    data = json.load(f)
+                    stat_result = os.fstat(f.fileno())
+                if (
+                    os.name == "nt" or (
+                        stat_result.st_uid == os.getuid() and
+                        stat.S_IMODE(stat_result.st_mode) == 0o0600
+                    )
+                ):
+                    if self.data_is_valid(g, data):
+                        table = LRTable.from_cache(g, data)
+
         if table is None:
             table = LRTable.from_grammar(g)
-            fd = os.open(cache_file, os.O_RDWR | os.O_CREAT | os.O_EXCL, 0o0600)
-            with os.fdopen(fd, "w") as f:
-                json.dump(self.serialize_table(table), f)
+            if GAE_RUNTIME:
+                memcache.set(cache_key, json.dumps(self.serialize_table(table),f), namespace="rply")
+            else:
+                fd = os.open(cache_file, os.O_RDWR | os.O_CREAT | os.O_EXCL, 0o0600)
+                with os.fdopen(fd, "w") as f:
+                    json.dump(self.serialize_table(table), f)
+
         if table.sr_conflicts:
             warnings.warn(
                 "%d shift/reduce conflict%s" % (len(table.sr_conflicts), "s" if len(table.sr_conflicts) > 1 else ""),
