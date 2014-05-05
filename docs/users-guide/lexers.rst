@@ -27,17 +27,17 @@ We can now build a lexer and use it::
     >>> for token in l.lex('1+1-1'):
     ...     print(token)
     ...
-    Token(NUMBER, '1')
-    Token(ADD, '+')
-    Token(NUMBER, '1')
-    Token(MINUS, '-')
-    Token(NUMBER, '1')
+    Token(NUMBER, '1', ())
+    Token(ADD, '+', ())
+    Token(NUMBER, '1', ())
+    Token(MINUS, '-', ())
+    Token(NUMBER, '1', ())
 
 This works quite nicely however there is but a small problem::
 
     >>> for token in l.lex('1 + 1'):
     ...     print(token)
-    Token('NUMBER', '1')
+    Token('NUMBER', '1', ())
     Traceback (most recent call last):
     ...
     rply.errors.LexingError
@@ -59,8 +59,23 @@ tokens::
     >>> for token in l.lex('1 + 1'):
     ...     print(token)
     ...
-    Token('NUMBER', '1')
-    Token('ADD', '+')
-    Token('NUMBER', '1')
+    Token('NUMBER', '1', ())
+    Token('ADD', '+', ())
+    Token('NUMBER', '1', ())
+
+If you have complex tokenization rules you may wish to utilize regular
+expression capture groups.  This can save you from having to re-parse
+the token text later, for example, when attempting to tokenize quoted text.
+
+    >>> lg.add('TEXT', r"""(?s)(b?r?)(["'])((?:\\.|(?!\2).)*)\2""")
+    >>> l = lg.build()
+    >>> for token in l.lex('"Hello " + "world!"')
+    ...     print(token)
+    ...
+    Token('TEXT', '"Hello "', ('', '"', 'Hello '))
+    Token('ADD', '+', ())
+    Token('TEXT', '"world!"', ('', '"', 'world!'))
+
+Now you can easily access the string flags, delimiter, and contents directly.
 
 With this you know everything there is to know about generating lexers.
