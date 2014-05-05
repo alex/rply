@@ -13,4 +13,4 @@ class TestTokens(object):
 
     def test_repr(self):
         t = Token("VALUE", "3")
-        assert repr(t) == "Token('VALUE', '3')"
+        assert repr(t) == "Token('VALUE', '3', None)"
