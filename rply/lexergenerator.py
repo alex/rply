@@ -30,13 +30,14 @@ class Rule(object):
 
     def matches(self, s, pos):
         m = self.re.match(s, pos)
-        return Match(*m.span(0)) if m is not None else None
+        return Match(m.groups(), *m.span(0)) if m is not None else None
 
 
 class Match(object):
-    _attrs_ = ["start", "end"]
+    _attrs_ = ["groups", "start", "end"]
 
-    def __init__(self, start, end):
+    def __init__(self, groups, start, end):
+        self.groups = groups
         self.start = start
         self.end = end
 

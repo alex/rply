@@ -18,13 +18,14 @@ class Token(BaseBox):
                        position of the first character in the source from which
                        this token was generated.
     """
-    def __init__(self, name, value, source_pos=None):
+    def __init__(self, name, value, source_pos=None, groups=None):
         self.name = name
         self.value = value
         self.source_pos = source_pos
+        self.groups = groups
 
     def __repr__(self):
-        return "Token(%r, %r)" % (self.name, self.value)
+        return "Token(%r, %r, %r)" % (self.name, self.value, self.groups)
 
     def __eq__(self, other):
         if not isinstance(other, Token):

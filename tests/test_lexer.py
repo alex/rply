@@ -82,3 +82,20 @@ class TestLexer(object):
         assert t.source_pos.colno == 5
         with raises(StopIteration):
             stream.next()
+
+    def test_grouping(self):
+        lg = LexerGenerator()
+        lg.add('TEXT', r"""(?s)(b?r?)(["'])((?:\\.|(?!\2).)*)\2""")
+
+        l = lg.build()
+
+        stream = l.lex('''r"Hello world!"''')
+        t = stream.next()
+
+        assert t.name == 'TEXT'
+        assert t.groups[0] == 'r'
+        assert t.groups[1] == '"'
+        assert t.groups[2] == 'Hello world!'
+
+        with raises(StopIteration):
+            stream.next()
