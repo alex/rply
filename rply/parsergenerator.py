@@ -323,38 +323,41 @@ class LRTable(object):
                     else:
                         laheads = p.lookaheads[st]
                         for a in laheads:
-                            if a in st_action:
-                                r = st_action[a]
-                                if r > 0:
-                                    sprec, slevel = grammar.productions[st_actionp[a].number].prec
-                                    rprec, rlevel = grammar.precedence.get(a, ("right", 0))
-                                    if (slevel < rlevel) or (slevel == rlevel and rprec == "left"):
-                                        st_action[a] = -p.number
-                                        st_actionp[a] = p
-                                        if not slevel and not rlevel:
-                                            sr_conflicts.append((st, repr(a), "reduce"))
-                                        grammar.productions[p.number].reduced += 1
-                                    elif not (slevel == rlevel and rprec == "nonassoc"):
-                                        if not rlevel:
-                                            sr_conflicts.append((st, repr(a), "shift"))
-                                elif r < 0:
-                                    oldp = grammar.productions[-r]
-                                    pp = grammar.productions[p.number]
-                                    if oldp.number > pp.number:
-                                        st_action[a] = -p.number
-                                        st_actionp[a] = p
-                                        chosenp, rejectp = pp, oldp
-                                        grammar.productions[p.number].reduced += 1
-                                        grammar.productions[oldp.number].reduced -= 1
-                                    else:
-                                        chosenp, rejectp = oldp, pp
-                                    rr_conflicts.append((st, repr(chosenp), repr(rejectp)))
-                                else:
-                                    raise ParserGeneratorError("Unknown conflict in state %d" % st)
-                            else:
+
+                            if a not in st_action:
                                 st_action[a] = -p.number
                                 st_actionp[a] = p
                                 grammar.productions[p.number].reduced += 1
+                                continue
+
+                            r = st_action[a]
+                            if r > 0:
+                                sprec, slevel = grammar.productions[st_actionp[a].number].prec
+                                rprec, rlevel = grammar.precedence.get(a, ("right", 0))
+                                if (slevel < rlevel) or (slevel == rlevel and rprec == "left"):
+                                    st_action[a] = -p.number
+                                    st_actionp[a] = p
+                                    if not slevel and not rlevel:
+                                        sr_conflicts.append((st, repr(a), "reduce"))
+                                    grammar.productions[p.number].reduced += 1
+                                elif not (slevel == rlevel and rprec == "nonassoc"):
+                                    if not rlevel:
+                                        sr_conflicts.append((st, repr(a), "shift"))
+                            elif r < 0:
+                                oldp = grammar.productions[-r]
+                                pp = grammar.productions[p.number]
+                                if oldp.number > pp.number:
+                                    st_action[a] = -p.number
+                                    st_actionp[a] = p
+                                    chosenp, rejectp = pp, oldp
+                                    grammar.productions[p.number].reduced += 1
+                                    grammar.productions[oldp.number].reduced -= 1
+                                else:
+                                    chosenp, rejectp = oldp, pp
+                                rr_conflicts.append((st, repr(chosenp), repr(rejectp)))
+                            else:
+                                raise ParserGeneratorError("Unknown conflict in state %d" % st)
+
                 else:
                     i = p.lr_index
                     a = p.prod[i + 1]
