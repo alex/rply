@@ -372,28 +372,29 @@ class LRTable(object):
                     if j < 0:
                         continue
 
-                    if a in st_action:
-                        r = st_action[a]
-                        if r > 0:
-                            if r != j:
-                                raise ParserGeneratorError("Shift/shift conflict in state %d" % st)
-                        elif r < 0:
-                            rprec, rlevel = grammar.productions[st_actionp[a].number].prec
-                            sprec, slevel = grammar.precedence.get(a, ("right", 0))
-                            if (slevel > rlevel) or (slevel == rlevel and rprec == "right"):
-                                grammar.productions[st_actionp[a].number].reduced -= 1
-                                st_action[a] = j
-                                st_actionp[a] = p
-                                if not rlevel:
-                                    sr_conflicts.append((st, repr(a), "shift"))
-                            elif not (slevel == rlevel and rprec == "nonassoc"):
-                                if not slevel and not rlevel:
-                                    sr_conflicts.append((st, repr(a), "reduce"))
-                        else:
-                            raise ParserGeneratorError("Unknown conflict in state %d" % st)
-                    else:
+                    if a not in st_action:
                         st_action[a] = j
                         st_actionp[a] = p
+                        continue
+
+                    r = st_action[a]
+                    if r > 0:
+                        if r != j:
+                            raise ParserGeneratorError("Shift/shift conflict in state %d" % st)
+                    elif r < 0:
+                        rprec, rlevel = grammar.productions[st_actionp[a].number].prec
+                        sprec, slevel = grammar.precedence.get(a, ("right", 0))
+                        if (slevel > rlevel) or (slevel == rlevel and rprec == "right"):
+                            grammar.productions[st_actionp[a].number].reduced -= 1
+                            st_action[a] = j
+                            st_actionp[a] = p
+                            if not rlevel:
+                                sr_conflicts.append((st, repr(a), "shift"))
+                        elif not (slevel == rlevel and rprec == "nonassoc"):
+                            if not slevel and not rlevel:
+                                sr_conflicts.append((st, repr(a), "reduce"))
+                    else:
+                        raise ParserGeneratorError("Unknown conflict in state %d" % st)
 
             nkeys = set()
             for ii in I:
