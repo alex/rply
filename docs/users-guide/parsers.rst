@@ -114,7 +114,7 @@ Having covered all that we actually start working on the parser itself:
     def expression_binop(p):
         left = p[0]
         right = p[2]
-        if p[1].gettokentype() == 'AND':
+        if p[1].gettokentype() == 'PLUS':
             return Add(left, right)
         elif p[1].gettokentype() == 'MINUS':
             return Sub(left, right)
