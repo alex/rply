@@ -63,4 +63,50 @@ tokens::
     Token('ADD', '+')
     Token('NUMBER', '1')
 
-With this you know everything there is to know about generating lexers.
+
+Lexing Nested Structures
+------------------------
+
+Some languages have nested structures that affect the lexer. One example of
+such a structure are nested comments. By definition it's not possible to match
+such a comment using a regular expression, nevertheless we want to be able to
+produce tokens without involving the parser.
+
+This problem is solved by keeping a stack of states in the lexer. States
+represent a set of rules and the lexer only uses those rules found in the state
+at the top of the stack. We can then change the state by pushing states to or
+popping them off the stack, thereby restricting or expanding the possible
+tokens the lexer is able to produce.
+
+To go with the nested comments example we would add a new rule that matches
+the begining of a comment::
+
+    lg.add('COMMENT_START', r'/\*', transition='push', target='comment')
+
+This adds a rule that matches ``/*``, when encountered it pushes a new state
+to the stack called `comment`. Let's define this state::
+
+    comment = lg.add_state('comment')
+    comment.add('COMMENT_START', r'/\*', transition='push', target='comment')
+    comment.add('COMMENT_END', r'\*/', transition='pop')
+    comment.add('COMMENT_TEXT', r'([^/*]|(/(?!\*))|(\*(?!/)))+')
+
+This `comment` state consists of three rules, `COMMENT_START` allows us to
+handle nested comments, `COMMENT_END` pops the comment to give back control to
+the previous state which is either a comment or our initial state and
+`COMMENT_TEXT` matches any combination of characters that does not include the
+sequences matched by `COMMENT_START` or `COMMENT_END`.
+
+Using this lexer we can now nicely handle nested comments::
+
+    >>> l = lg.build()
+    >>> for token in l.lex('/* this is /* a nested comment */ */'):
+    ...     print(token)
+    ...
+    Token('COMMENT_START', '/*')
+    Token('COMMENT_TEXT', ' this is ')
+    Token('COMMENT_START', '/*')
+    Token('COMMENT_TEXT', ' a nested comment ')
+    Token('COMMENT_END', '*/')
+    Token('COMMENT_TEXT', ' ')
+    Token('COMMENT_END', '*/')

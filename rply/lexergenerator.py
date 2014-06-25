@@ -21,9 +21,11 @@ from rply.lexer import Lexer
 
 
 class Rule(object):
-    def __init__(self, name, pattern):
+    def __init__(self, name, pattern, transition=None, target=None):
         self.name = name
         self.re = re.compile(pattern)
+        self.transition = transition
+        self.target = target
 
     def _freeze_(self):
         return True
@@ -41,12 +43,25 @@ class Match(object):
         self.end = end
 
 
+class LexerState(object):
+    def __init__(self):
+        self.rules = []
+        self.ignore_rules = []
+
+    def add(self, name, pattern, transition=None, target=None):
+        self.rules.append(Rule(name, pattern, transition, target))
+
+    def ignore(self, pattern, transition=None, target=None):
+        self.ignore_rules.append(Rule('', pattern, transition, target))
+
+
 class LexerGenerator(object):
     """
-    A LexerGenerator represents a set of rules that match pieces of text that
-    should either be turned into tokens or ignored by the lexer.
-
-    Rules are added using the :meth:`add` and :meth:`ignore` methods:
+    A LexerGenerator represents a set of state objects, each state consists of
+    a set of rules that match pieces of text that should either be turned into
+    tokens or ignored by the lexer. For convenience an initial state with the
+    name passed as `initial_state` is created for you, to which you can add
+    rules using the :meth:`add` and :meth:`ignore` methods:
 
     >>> from rply import LexerGenerator
     >>> lg = LexerGenerator()
@@ -70,24 +85,32 @@ class LexerGenerator(object):
     ...
     StopIteration
     """
+    def __init__(self, initial_state='start'):
+        self.initial_state = initial_state
 
-    def __init__(self):
-        self.rules = []
-        self.ignore_rules = []
+        self.states = {initial_state: LexerState()}
 
-    def add(self, name, pattern):
+    def add(self, *args, **kwargs):
         """
         Adds a rule with the given `name` and `pattern`. In case of ambiguity,
         the first rule added wins.
-        """
-        self.rules.append(Rule(name, pattern))
 
-    def ignore(self, pattern):
+        If you want the state of the parser to change after this rule has
+        matched, you can perform a transition by passing ``"push"`` or
+        ``"pop"``, to either push a state to the stack of states or to pop a
+        state from that stack. If you do push a state to the stack, you need
+        to pass the name of that state as `target`.
+        """
+        self.states[self.initial_state].add(*args, **kwargs)
+
+    def ignore(self, *args, **kwargs):
         """
         Adds a rule whose matched value will be ignored. Ignored rules will be
         matched before regular ones.
+
+        See :meth:`add` on the `transition` and `target` argument.
         """
-        self.ignore_rules.append(Rule("", pattern))
+        self.states[self.initial_state].ignore(*args, **kwargs)
 
     def build(self):
         """
@@ -95,7 +118,17 @@ class LexerGenerator(object):
         called with a string and returns an iterator yielding
         :class:`~rply.Token` instances.
         """
-        return Lexer(self.rules, self.ignore_rules)
+        return Lexer(self.states[self.initial_state], self.states)
+
+    def add_state(self, name):
+        """
+        Adds a state with the given `name` and returns it. The returned state
+        has `add` and `ignore` methods equivalent to :meth:`add` and
+        :meth:`ignore`.
+        """
+        state = self.states[name] = LexerState()
+        return state
+
 
 if rpython:
     class RuleEntry(ExtRegistryEntry):
@@ -139,7 +172,7 @@ if rpython:
             return model.SomeInstance(getbookkeeper().getuniqueclassdef(Match), can_be_None=True)
 
         def getattr(self, s_attr):
-            if s_attr.is_constant() and s_attr.const == "name":
+            if s_attr.is_constant() and s_attr.const in ["name", "transition", "target"]:
                 return model.SomeString()
             return super(SomeRule, self).getattr(s_attr)
 
@@ -168,6 +201,8 @@ if rpython:
             self.lowleveltype = lltype.Ptr(lltype.GcStruct(
                 "RULE",
                 ("name", lltype.Ptr(STR)),
+                ("transition", lltype.Ptr(STR)),
+                ("target", lltype.Ptr(STR)),
                 ("code", list_repr.lowleveltype),
             ))
 
@@ -175,6 +210,8 @@ if rpython:
             if rule not in self.ll_rule_cache:
                 ll_rule = lltype.malloc(self.lowleveltype.TO)
                 ll_rule.name = llstr(rule.name)
+                ll_rule.transition = llstr(rule.transition)
+                ll_rule.target = llstr(rule.target)
                 code = get_code(rule.re.pattern)
                 ll_rule.code = lltype.malloc(self.lowleveltype.TO.code.TO, len(code))
                 for i, c in enumerate(code):
@@ -187,6 +224,12 @@ if rpython:
             if s_attr.is_constant() and s_attr.const == "name":
                 v_rule = hop.inputarg(self, arg=0)
                 return hop.gendirectcall(LLRule.ll_get_name, v_rule)
+            elif s_attr.is_constant() and s_attr.const == "transition":
+                v_rule = hop.inputarg(self, arg=0)
+                return hop.gendirectcall(LLRule.ll_get_transition, v_rule)
+            elif s_attr.is_constant() and s_attr.const == "target":
+                v_rule = hop.inputarg(self, arg=0)
+                return hop.gendirectcall(LLRule.ll_get_target, v_rule)
             return super(RuleRepr, self).rtype_getattr(hop)
 
         def rtype_method_matches(self, hop):
@@ -207,6 +250,14 @@ if rpython:
         @staticmethod
         def ll_get_name(ll_rule):
             return ll_rule.name
+
+        @staticmethod
+        def ll_get_transition(ll_rule):
+            return ll_rule.transition
+
+        @staticmethod
+        def ll_get_target(ll_rule):
+            return ll_rule.target
 
         @staticmethod
         def ll_matches(MATCHTYPE, MATCH_INIT, MATCH_CONTEXTTYPE,
