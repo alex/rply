@@ -7,45 +7,6 @@ from .base import BaseTests
 
 
 class TestParserGenerator(BaseTests):
-    def test_simple(self):
-        pg = ParserGenerator(["VALUE"])
-
-        @pg.production("main : VALUE")
-        def main(p):
-            return p[0]
-
-        parser = pg.build()
-
-        assert parser.lr_table.lr_action == [
-            {"VALUE": 2},
-            {"$end": 0},
-            {"$end": -1},
-        ]
-
-    def test_empty_production(self):
-        pg = ParserGenerator(["VALUE"])
-
-        @pg.production("main : values")
-        def main(p):
-            return p[0]
-
-        @pg.production("values : VALUE values")
-        def values_value(p):
-            return [p[0]] + p[1]
-
-        @pg.production("values :")
-        def values_empty(p):
-            return []
-
-        parser = pg.build()
-        assert parser.lr_table.lr_action == [
-            {"$end": -3, "VALUE": 3},
-            {"$end": 0},
-            {"$end": -1},
-            {"$end": -3, "VALUE": 3},
-            {"$end": -2},
-        ]
-
     def test_production_syntax_error(self):
         pg = ParserGenerator([])
         with py.test.raises(ParserGeneratorError):
