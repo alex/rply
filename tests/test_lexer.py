@@ -82,3 +82,21 @@ class TestLexer(object):
         assert t.source_pos.colno == 5
         with raises(StopIteration):
             stream.next()
+
+    def test_newline_position(self):
+        lg = LexerGenerator()
+        lg.add("NEWLINE", r"\n")
+        lg.add("SPACE", r" ")
+
+        l = lg.build()
+
+        stream = l.lex(" \n ")
+        t = stream.next()
+        assert t.source_pos.lineno == 1
+        assert t.source_pos.colno == 1
+        t = stream.next()
+        assert t.source_pos.lineno == 1
+        assert t.source_pos.colno == 2
+        t = stream.next()
+        assert t.source_pos.lineno == 2
+        assert t.source_pos.colno == 1

@@ -42,8 +42,9 @@ class LexerStream(object):
         for rule in self.lexer.rules:
             match = rule.matches(self.s, self.idx)
             if match:
+                lineno = self._lineno
                 colno = self._update_pos(match)
-                source_pos = SourcePosition(match.start, self._lineno, colno)
+                source_pos = SourcePosition(match.start, lineno, colno)
                 token = Token(
                     rule.name, self.s[match.start:match.end], source_pos
                 )
