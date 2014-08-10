@@ -15,6 +15,7 @@ class TestTokens(object):
         t = Token("VALUE", "3")
         assert repr(t) == "Token('VALUE', '3')"
 
+
 class TestSourcePosition(object):
     def test_source_pos(self):
         sp = SourcePosition(1, 2, 3)

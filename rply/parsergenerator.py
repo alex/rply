@@ -332,7 +332,7 @@ class LRTable(object):
                                         chosenp, rejectp = oldp, pp
                                     rr_conflicts.append((st, repr(chosenp), repr(rejectp)))
                                 else:
-                                    raise LALRError("Unknown conflict in state %d" % st)
+                                    raise ParserGeneratorError("Unknown conflict in state %d" % st)
                             else:
                                 st_action[a] = -p.number
                                 st_actionp[a] = p
@@ -348,7 +348,7 @@ class LRTable(object):
                                 r = st_action[a]
                                 if r > 0:
                                     if r != j:
-                                        raise LALRError("Shift/shift conflict in state %d" % st)
+                                        raise ParserGeneratorError("Shift/shift conflict in state %d" % st)
                                 elif r < 0:
                                     rprec, rlevel = grammar.productions[st_actionp[a].number].prec
                                     sprec, slevel = grammar.precedence.get(a, ("right", 0))
@@ -362,7 +362,7 @@ class LRTable(object):
                                         if not slevel and not rlevel:
                                             sr_conflicts.append((st, repr(a), "reduce"))
                                 else:
-                                    raise LALRError("Unknown conflict in state %d" % st)
+                                    raise ParserGeneratorError("Unknown conflict in state %d" % st)
                             else:
                                 st_action[a] = j
                                 st_actionp[a] = p

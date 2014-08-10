@@ -108,7 +108,7 @@ class TestParser(BaseTests):
             Token("NUMBER", "3"),
             Token("TIMES", "*"),
             Token("NUMBER", "4"),
-            Token("PLUS",  "+"),
+            Token("PLUS", "+"),
             Token("NUMBER", "5")
         ])) == BoxInt(17)
 
