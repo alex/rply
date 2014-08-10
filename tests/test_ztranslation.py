@@ -65,7 +65,9 @@ class BaseTestTranslation(BaseTests):
         def expr_num(p):
             return BoxInt(int(p[0].getstr()))
 
-        with self.assert_warns(ParserGeneratorWarning, "1 shift/reduce conflict"):
+        with self.assert_warns(
+            ParserGeneratorWarning, "1 shift/reduce conflict"
+        ):
             parser = pg.build()
 
         def f(n):

@@ -124,7 +124,9 @@ if rpython:
             ])
             init_pbc = bk.immutablevalue(rsre_core.StrMatchContext.__init__)
             bk.emulate_pbc_call((self, "str_match_context_init"), init_pbc, [
-                model.SomeInstance(bk.getuniqueclassdef(rsre_core.StrMatchContext)),
+                model.SomeInstance(
+                    bk.getuniqueclassdef(rsre_core.StrMatchContext)
+                ),
                 bk.newlist(model.SomeInteger(nonneg=True)),
                 model.SomeString(),
                 model.SomeInteger(nonneg=True),
@@ -133,10 +135,14 @@ if rpython:
             ])
             match_context_pbc = bk.immutablevalue(rsre_core.match_context)
             bk.emulate_pbc_call((self, "match_context"), match_context_pbc, [
-                model.SomeInstance(bk.getuniqueclassdef(rsre_core.StrMatchContext)),
+                model.SomeInstance(
+                    bk.getuniqueclassdef(rsre_core.StrMatchContext)
+                ),
             ])
 
-            return model.SomeInstance(getbookkeeper().getuniqueclassdef(Match), can_be_None=True)
+            return model.SomeInstance(
+                getbookkeeper().getuniqueclassdef(Match), can_be_None=True
+            )
 
         def getattr(self, s_attr):
             if s_attr.is_constant() and s_attr.const == "name":
@@ -157,13 +163,19 @@ if rpython:
                 rtyper.annotator.bookkeeper.immutablevalue(Match.__init__)
             )
             self.match_context_init_repr = rtyper.getrepr(
-                rtyper.annotator.bookkeeper.immutablevalue(rsre_core.StrMatchContext.__init__)
+                rtyper.annotator.bookkeeper.immutablevalue(
+                    rsre_core.StrMatchContext.__init__
+                )
             )
             self.match_context_repr = rtyper.getrepr(
-                rtyper.annotator.bookkeeper.immutablevalue(rsre_core.match_context)
+                rtyper.annotator.bookkeeper.immutablevalue(
+                    rsre_core.match_context
+                )
             )
 
-            list_repr = FixedSizeListRepr(rtyper, rtyper.getrepr(model.SomeInteger(nonneg=True)))
+            list_repr = FixedSizeListRepr(
+                rtyper, rtyper.getrepr(model.SomeInteger(nonneg=True))
+            )
             list_repr._setup_repr()
             self.lowleveltype = lltype.Ptr(lltype.GcStruct(
                 "RULE",
@@ -176,7 +188,9 @@ if rpython:
                 ll_rule = lltype.malloc(self.lowleveltype.TO)
                 ll_rule.name = llstr(rule.name)
                 code = get_code(rule.re.pattern)
-                ll_rule.code = lltype.malloc(self.lowleveltype.TO.code.TO, len(code))
+                ll_rule.code = lltype.malloc(
+                    self.lowleveltype.TO.code.TO, len(code)
+                )
                 for i, c in enumerate(code):
                     ll_rule.code[i] = c
                 self.ll_rule_cache[rule] = ll_rule
@@ -190,12 +204,22 @@ if rpython:
             return super(RuleRepr, self).rtype_getattr(hop)
 
         def rtype_method_matches(self, hop):
-            [v_rule, v_s, v_pos] = hop.inputargs(self, string_repr, lltype.Signed)
+            [v_rule, v_s, v_pos] = hop.inputargs(
+                self, string_repr, lltype.Signed
+            )
             c_MATCHTYPE = hop.inputconst(lltype.Void, Match)
-            c_MATCH_INIT = hop.inputconst(lltype.Void, self.match_init_repr)
-            c_MATCH_CONTEXTTYPE = hop.inputconst(lltype.Void, rsre_core.StrMatchContext)
-            c_MATCH_CONTEXT_INIT = hop.inputconst(lltype.Void, self.match_context_init_repr)
-            c_MATCH_CONTEXT = hop.inputconst(lltype.Void, self.match_context_repr)
+            c_MATCH_INIT = hop.inputconst(
+                lltype.Void, self.match_init_repr
+            )
+            c_MATCH_CONTEXTTYPE = hop.inputconst(
+                lltype.Void, rsre_core.StrMatchContext
+            )
+            c_MATCH_CONTEXT_INIT = hop.inputconst(
+                lltype.Void, self.match_context_init_repr
+            )
+            c_MATCH_CONTEXT = hop.inputconst(
+                lltype.Void, self.match_context_repr
+            )
 
             return hop.gendirectcall(
                 LLRule.ll_matches,

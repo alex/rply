@@ -3,8 +3,8 @@ import operator
 import py
 
 from rply import ParserGenerator, Token, ParsingError
-from rply.token import SourcePosition
 from rply.errors import ParserGeneratorWarning
+from rply.token import SourcePosition
 
 from .base import BaseTests
 from .utils import RecordingLexer, BoxInt, ParserState
@@ -38,8 +38,11 @@ class TestParser(BaseTests):
         def expr_num(p):
             return BoxInt(int(p[0].getstr()))
 
-        with self.assert_warns(ParserGeneratorWarning, "1 shift/reduce conflict"):
+        with self.assert_warns(
+            ParserGeneratorWarning, "1 shift/reduce conflict"
+        ):
             parser = pg.build()
+
         assert parser.parse(iter([
             Token("NUMBER", "1"),
             Token("PLUS", "+"),
@@ -133,7 +136,9 @@ class TestParser(BaseTests):
         def expr_number(p):
             return BoxInt(int(p[0].getstr()))
 
-        with self.assert_warns(ParserGeneratorWarning, "1 shift/reduce conflict"):
+        with self.assert_warns(
+            ParserGeneratorWarning, "1 shift/reduce conflict"
+        ):
             parser = pg.build()
 
         assert parser.parse(iter([
@@ -237,9 +242,12 @@ class TestParser(BaseTests):
         assert exc_info.value.args[1] is token
 
     def test_default_reductions(self):
-        pg = ParserGenerator(["INTEGER_START", "INTEGER_VALUE", "COMPARE"], precedence=[
-            ("nonassoc", ["COMPARE"])
-        ])
+        pg = ParserGenerator(
+            ["INTEGER_START", "INTEGER_VALUE", "COMPARE"],
+            precedence=[
+                ("nonassoc", ["COMPARE"])
+            ]
+        )
         record = []
 
         @pg.production("main : expr")

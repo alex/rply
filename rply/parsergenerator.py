@@ -120,7 +120,9 @@ class ParserGenerator(object):
             "start": table.grammar.start,
             "terminals": sorted(table.grammar.terminals),
             "precedence": table.grammar.precedence,
-            "productions": [(p.name, p.prod, p.prec) for p in table.grammar.productions],
+            "productions": [
+                (p.name, p.prod, p.prec) for p in table.grammar.productions
+            ],
         }
 
     def data_is_valid(self, g, data):
@@ -177,12 +179,19 @@ class ParserGenerator(object):
         if os.name == "nt":
             cache_file = os.path.join(
                 tempfile.gettempdir(),
-                "rply-%s-%s-%s.json" % (self.VERSION, self.cache_id, self.compute_grammar_hash(g))
+                "rply-%s-%s-%s.json" % (
+                    self.VERSION, self.cache_id, self.compute_grammar_hash(g)
+                )
             )
         else:
             cache_file = os.path.join(
                 tempfile.gettempdir(),
-                "rply-%s-%s-%s-%s.json" % (self.VERSION, os.getuid(), self.cache_id, self.compute_grammar_hash(g))
+                "rply-%s-%s-%s-%s.json" % (
+                    self.VERSION,
+                    os.getuid(),
+                    self.cache_id,
+                    self.compute_grammar_hash(g)
+                )
             )
         table = None
         if os.path.exists(cache_file):
@@ -199,18 +208,26 @@ class ParserGenerator(object):
                     table = LRTable.from_cache(g, data)
         if table is None:
             table = LRTable.from_grammar(g)
-            fd = os.open(cache_file, os.O_RDWR | os.O_CREAT | os.O_EXCL, 0o0600)
+            fd = os.open(
+                cache_file, os.O_RDWR | os.O_CREAT | os.O_EXCL, 0o0600
+            )
             with os.fdopen(fd, "w") as f:
                 json.dump(self.serialize_table(table), f)
         if table.sr_conflicts:
             warnings.warn(
-                "%d shift/reduce conflict%s" % (len(table.sr_conflicts), "s" if len(table.sr_conflicts) > 1 else ""),
+                "%d shift/reduce conflict%s" % (
+                    len(table.sr_conflicts),
+                    "s" if len(table.sr_conflicts) > 1 else ""
+                ),
                 ParserGeneratorWarning,
                 stacklevel=2,
             )
         if table.rr_conflicts:
             warnings.warn(
-                "%d reduce/reduce conflict%s" % (len(table.rr_conflicts), "s" if len(table.rr_conflicts) > 1 else ""),
+                "%d reduce/reduce conflict%s" % (
+                    len(table.rr_conflicts),
+                    "s" if len(table.rr_conflicts) > 1 else ""
+                ),
                 ParserGeneratorWarning,
                 stacklevel=2,
             )
@@ -252,7 +269,8 @@ def traverse(x, N, stack, F, X, R, FP):
 
 
 class LRTable(object):
-    def __init__(self, grammar, lr_action, lr_goto, default_reductions, sr_conflicts, rr_conflicts):
+    def __init__(self, grammar, lr_action, lr_goto, default_reductions,
+                 sr_conflicts, rr_conflicts):
         self.grammar = grammar
         self.lr_action = lr_action
         self.lr_goto = lr_goto

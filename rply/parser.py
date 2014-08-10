@@ -19,7 +19,9 @@ class LRParser(object):
         while True:
             if self.lr_table.default_reductions[current_state]:
                 t = self.lr_table.default_reductions[current_state]
-                current_state = self._reduce_production(t, symstack, statestack, state)
+                current_state = self._reduce_production(
+                    t, symstack, statestack, state
+                )
                 continue
 
             if lookahead is None:
@@ -44,7 +46,9 @@ class LRParser(object):
                     lookahead = None
                     continue
                 elif t < 0:
-                    current_state = self._reduce_production(t, symstack, statestack, state)
+                    current_state = self._reduce_production(
+                        t, symstack, statestack, state
+                    )
                     continue
                 else:
                     n = symstack[-1]
