@@ -5,7 +5,7 @@ try:
 except ImportError:
     py.test.skip("Needs RPython to be on the PYTHONPATH")
 
-from rply import ParserGenerator, LexerGenerator, Token
+from rply import LexerGenerator, ParserGenerator, Token
 from rply.errors import ParserGeneratorWarning
 
 from .base import BaseTests

@@ -2,12 +2,12 @@ import operator
 
 import py
 
-from rply import ParserGenerator, Token, ParsingError
+from rply import ParserGenerator, ParsingError, Token
 from rply.errors import ParserGeneratorWarning
 from rply.token import SourcePosition
 
 from .base import BaseTests
-from .utils import RecordingLexer, BoxInt, ParserState
+from .utils import BoxInt, ParserState, RecordingLexer
 
 
 class TestParser(BaseTests):

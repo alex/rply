@@ -1,6 +1,6 @@
-import os
 import hashlib
 import json
+import os
 import random
 import stat
 import string
@@ -11,7 +11,7 @@ import warnings
 from rply.errors import ParserGeneratorError, ParserGeneratorWarning
 from rply.grammar import Grammar
 from rply.parser import LRParser
-from rply.utils import IdentityDict, Counter, iteritems, itervalues
+from rply.utils import Counter, IdentityDict, iteritems, itervalues
 
 
 LARGE_VALUE = sys.maxsize
