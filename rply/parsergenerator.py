@@ -61,7 +61,7 @@ class ParserGenerator(object):
 
         Knowing this we can define productions::
 
-            pg = ParserGenerator(['NUMBER ADD'])
+            pg = ParserGenerator(['NUMBER', 'ADD'])
 
             @pg.production('number : NUMBER')
             def expr_number(p):
