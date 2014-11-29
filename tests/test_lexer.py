@@ -1,3 +1,5 @@
+import re
+
 from pytest import raises
 
 from rply import LexerGenerator
@@ -100,3 +102,30 @@ class TestLexer(object):
         t = stream.next()
         assert t.source_pos.lineno == 2
         assert t.source_pos.colno == 1
+
+    def test_regex_flags(self):
+        lg = LexerGenerator()
+        lg.add("ALL", r".*", re.DOTALL)
+
+        l = lg.build()
+
+        stream = l.lex("test\ndotall")
+        t = stream.next()
+        assert t.source_pos.lineno == 1
+        assert t.source_pos.colno == 1
+        assert t.getstr() == "test\ndotall"
+
+        with raises(StopIteration):
+            stream.next()
+
+    def test_regex_flags_ignore(self):
+        lg = LexerGenerator()
+        lg.add("ALL", r".*", re.DOTALL)
+        lg.ignore(r".*", re.DOTALL)
+
+        l = lg.build()
+
+        stream = l.lex("test\ndotall")
+
+        with raises(StopIteration):
+            stream.next()
