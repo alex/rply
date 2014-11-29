@@ -21,9 +21,9 @@ from rply.lexer import Lexer
 
 
 class Rule(object):
-    def __init__(self, name, pattern):
+    def __init__(self, name, pattern, flags=0):
         self.name = name
-        self.re = re.compile(pattern)
+        self.re = re.compile(pattern, flags=flags)
 
     def _freeze_(self):
         return True
@@ -54,6 +54,13 @@ class LexerGenerator(object):
     >>> lg.add('ADD', r'\+')
     >>> lg.ignore(r'\s+')
 
+    The rules are passed to :func:`re.compile`. If you need additional flags,
+    e.g. :const:`re.DOTALL`, you can pass them to :meth:`add` and
+    :meth:`ignore` as an additional optional parameter:
+
+    >>> import re
+    >>> lg.add('ALL', r'.*', flags=re.DOTALL)
+
     You can then build a lexer with which you can lex a string to produce an
     iterator yielding tokens:
 
@@ -75,19 +82,19 @@ class LexerGenerator(object):
         self.rules = []
         self.ignore_rules = []
 
-    def add(self, name, pattern):
+    def add(self, name, pattern, flags=0):
         """
         Adds a rule with the given `name` and `pattern`. In case of ambiguity,
         the first rule added wins.
         """
-        self.rules.append(Rule(name, pattern))
+        self.rules.append(Rule(name, pattern, flags=flags))
 
-    def ignore(self, pattern):
+    def ignore(self, pattern, flags=0):
         """
         Adds a rule whose matched value will be ignored. Ignored rules will be
         matched before regular ones.
         """
-        self.ignore_rules.append(Rule("", pattern))
+        self.ignore_rules.append(Rule("", pattern, flags=flags))
 
     def build(self):
         """
@@ -181,6 +188,7 @@ if rpython:
                 "RULE",
                 ("name", lltype.Ptr(STR)),
                 ("code", list_repr.lowleveltype),
+                ("flags", lltype.Signed),
             ))
 
         def convert_const(self, rule):
@@ -193,6 +201,7 @@ if rpython:
                 )
                 for i, c in enumerate(code):
                     ll_rule.code[i] = c
+                ll_rule.flags = rule.re.flags
                 self.ll_rule_cache[rule] = ll_rule
             return self.ll_rule_cache[rule]
 
@@ -240,7 +249,7 @@ if rpython:
             ctx = instantiate(MATCH_CONTEXTTYPE)
             hlinvoke(
                 MATCH_CONTEXT_INIT, rsre_core.StrMatchContext.__init__,
-                ctx, ll_rule.code, hlstr(s), pos, len(s), 0
+                ctx, ll_rule.code, hlstr(s), pos, len(s), ll_rule.flags
             )
             matched = hlinvoke(MATCH_CONTEXT, rsre_core.match_context, ctx)
             if matched:
