@@ -192,3 +192,18 @@ We can pass `ParserState` objects to the parser simply like this:
 
 This will call every production rule and the error handler with the
 `ParserState` instance as first argument.
+
+
+Precedence on rules
+-------------------
+
+Sometimes it is useful to give a rule a manual precedence. For this pass the
+`precedence` argument to `production`. For example, if we  wanted to add an
+implicit multiplication rule to the above language (so that e.g. `16 32` is
+parsed the same as `16 * 32`) we use the following:
+
+.. code:: python
+
+    @pg.production('expression : expression expression', precedence='Mul')
+    def implicit_multiplication(p):
+        return Mul(p[0], p[1])
