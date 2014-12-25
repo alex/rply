@@ -33,7 +33,7 @@ class ParserGenerator(object):
     """
     VERSION = 1
 
-    def __init__(self, tokens, precedence=[], cache_id=None):
+    def __init__(self, tokens, precedence=[], cache_id=None, cache_dir=None):
         self.tokens = tokens
         self.productions = []
         self.precedence = precedence
@@ -41,6 +41,11 @@ class ParserGenerator(object):
             # This ensures that we always go through the caching code.
             cache_id = "".join(random.choice(string.ascii_letters) for _ in range(6))
         self.cache_id = cache_id
+        if cache_dir is None:
+            cache_dir = tempfile.gettempdir()
+        if not os.path.isdir(cache_dir):
+            raise ParserGeneratorError("Invalid cache_dir")
+        self.cache_dir = cache_dir
         self.error_handler = None
 
     def production(self, rule, precedence=None):
@@ -178,14 +183,14 @@ class ParserGenerator(object):
         # win32 temp directories are already per-user
         if os.name == "nt":
             cache_file = os.path.join(
-                tempfile.gettempdir(),
+                self.cache_dir,
                 "rply-%s-%s-%s.json" % (
                     self.VERSION, self.cache_id, self.compute_grammar_hash(g)
                 )
             )
         else:
             cache_file = os.path.join(
-                tempfile.gettempdir(),
+                self.cache_dir,
                 "rply-%s-%s-%s-%s.json" % (
                     self.VERSION,
                     os.getuid(),
