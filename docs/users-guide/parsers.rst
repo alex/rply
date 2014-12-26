@@ -204,6 +204,6 @@ parsed the same as `16 * 32`) we use the following:
 
 .. code:: python
 
-    @pg.production('expression : expression expression', precedence='Mul')
+    @pg.production('expression : expression expression', precedence='MUL')
     def implicit_multiplication(p):
         return Mul(p[0], p[1])
