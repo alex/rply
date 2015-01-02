@@ -1,6 +1,9 @@
 import py
+import os
+import tempfile
+import time
 
-from rply import ParserGenerator, Token
+from rply import ParserGenerator, Token,  DirectoryCache
 from rply.errors import ParserGeneratorError
 
 from .base import BaseTests
@@ -64,7 +67,7 @@ class TestParserGenerator(BaseTests):
 
 class TestParserCaching(object):
     def test_simple_caching(self):
-        pg = ParserGenerator(["VALUE"], cache_id="simple")
+        pg = ParserGenerator(["VALUE"], cache=DirectoryCache('simple'))
 
         @pg.production("main : VALUE")
         def main(p):
@@ -76,3 +79,57 @@ class TestParserCaching(object):
         assert parser.parse(iter([
             Token("VALUE", "3")
         ])) == Token("VALUE", "3")
+
+    def test_directory(self):
+        cache_dir = tempfile.gettempdir()
+        pg = ParserGenerator(["VALUE"], cache=DirectoryCache(cache_dir=cache_dir))
+
+        @pg.production("main : VALUE")
+        def main(p):
+            return p[0]
+
+        pg.build()
+        parser = pg.build()
+
+        assert parser.parse(iter([
+            Token("VALUE", "3")
+        ])) == Token("VALUE", "3")
+
+    def test_full(self):
+        cache_dir = tempfile.gettempdir()
+        pg = ParserGenerator(["VALUE"], cache=DirectoryCache('full', cache_dir))
+
+        @pg.production("main : VALUE")
+        def main(p):
+            return p[0]
+
+        time0 = time.time()
+        pg.build()
+        time1 = time.time()
+
+        parser = pg.build()
+        time2 = time.time()
+
+        assert parser.parse(iter([
+            Token("VALUE", "3")
+        ])) == Token("VALUE", "3")
+
+        # loading from the cache should be faster
+        assert time1 - time0 > time2 - time1
+
+    def test_directory_nonexist(self):
+        cache_dir = os.path.join(tempfile.gettempdir(), "nonexist")
+        with py.test.raises(ValueError):
+            pg = ParserGenerator(["VALUE"], cache=DirectoryCache('simple', cache_dir))
+
+    def test_invalid_dir(self):
+        with py.test.raises(ValueError):
+            pg = ParserGenerator(["VALUE"], cache=DirectoryCache(cache_dir=[]))
+
+    def test_invalid_id(self):
+        with py.test.raises(ValueError):
+            pg = ParserGenerator(["VALUE"], cache=DirectoryCache([]))
+
+    def test_invalid_cache(self):
+        with py.test.raises(ValueError):
+            pg = ParserGenerator(["VALUE"], cache=DirectoryCache([]))
