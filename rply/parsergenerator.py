@@ -29,23 +29,16 @@ class ParserGenerator(object):
                        associativity (left, right or nonassoc) and a list of
                        token names with the same associativity and level of
                        precedence.
-    :param cache_id: A string specifying an ID for caching.
+    :param cache: A DirectoryCache instance for caching the production tables.
     """
-    VERSION = 1
 
-    def __init__(self, tokens, precedence=[], cache_id=None, cache_dir=None):
+    def __init__(self, tokens, precedence=[], cache=None):
         self.tokens = tokens
         self.productions = []
         self.precedence = precedence
-        if cache_id is None:
-            # This ensures that we always go through the caching code.
-            cache_id = "".join(random.choice(string.ascii_letters) for _ in range(6))
-        self.cache_id = cache_id
-        if cache_dir is None:
-            cache_dir = tempfile.gettempdir()
-        if not os.path.isdir(cache_dir):
-            raise ParserGeneratorError("Invalid cache_dir")
-        self.cache_dir = cache_dir
+        if cache is None:
+            cache = DirectoryCache()
+        self.cache = cache
         self.error_handler = None
 
     def production(self, rule, precedence=None):
@@ -180,44 +173,14 @@ class ParserGenerator(object):
         g.compute_first()
         g.compute_follow()
 
-        # win32 temp directories are already per-user
-        if os.name == "nt":
-            cache_file = os.path.join(
-                self.cache_dir,
-                "rply-%s-%s-%s.json" % (
-                    self.VERSION, self.cache_id, self.compute_grammar_hash(g)
-                )
-            )
-        else:
-            cache_file = os.path.join(
-                self.cache_dir,
-                "rply-%s-%s-%s-%s.json" % (
-                    self.VERSION,
-                    os.getuid(),
-                    self.cache_id,
-                    self.compute_grammar_hash(g)
-                )
-            )
         table = None
-        if os.path.exists(cache_file):
-            with open(cache_file) as f:
-                data = json.load(f)
-                stat_result = os.fstat(f.fileno())
-            if (
-                os.name == "nt" or (
-                    stat_result.st_uid == os.getuid() and
-                    stat.S_IMODE(stat_result.st_mode) == 0o0600
-                )
-            ):
-                if self.data_is_valid(g, data):
-                    table = LRTable.from_cache(g, data)
+        grammar_hash = self.compute_grammar_hash(g)
+        data = self.cache.load(grammar_hash)
+        if data is not None and self.data_is_valid(g, data):
+            table = LRTable.from_cache(g, data)
         if table is None:
             table = LRTable.from_grammar(g)
-            fd = os.open(
-                cache_file, os.O_RDWR | os.O_CREAT | os.O_EXCL, 0o0600
-            )
-            with os.fdopen(fd, "w") as f:
-                json.dump(self.serialize_table(table), f)
+            self.cache.dump(grammar_hash, self.serialize_table(table))
         if table.sr_conflicts:
             warnings.warn(
                 "%d shift/reduce conflict%s" % (
@@ -615,3 +578,68 @@ class LRTable(object):
                 for a in f:
                     if a not in laheads:
                         laheads.append(a)
+
+
+class DirectoryCache(object):
+    """
+    DirectoryCache represents a cache file
+
+    :param cache_id: A string specifying an ID for the cache. If no argument
+                     is given generate a random ID.
+    :param cache_dir: A string specifying a directory for the cache. If no
+                     argument is given use a temp file.
+    """
+    VERSION = 1
+
+    def __init__(self, cache_id=None, cache_dir=None):
+        if cache_id is None:
+            # generate a random cache id
+            cache_id = "".join(
+                random.choice(string.ascii_letters) for _ in range(6))
+        self.cache_id = cache_id
+        if not isinstance(self.cache_id, str):
+            raise ValueError("invalid argument cache_id to DirectoryCache")
+
+        if cache_dir is None:
+            cache_dir = tempfile.gettempdir()
+        self.cache_dir = cache_dir
+        if not (isinstance(self.cache_dir, str) and os.path.isdir(cache_dir)):
+            raise ValueError("invalid argument cache_dir to DirectoryCache")
+
+    def _get_filename(self, grammar_hash):
+        if os.name == "nt":
+            # win32 temp directories are already per-user
+            filename = "rply-%s-%s-%s.json" % (
+                self.VERSION, self.cache_id, grammar_hash)
+        else:
+            filename = "rply-%s-%s-%s-%s.json" % (
+                self.VERSION, os.getuid(), self.cache_id, grammar_hash)
+        return os.path.join(self.cache_dir, filename)
+
+    def load(self, grammar_hash):
+        """
+        Attempts to load data from the cache and returns None on failure.
+        """
+        cache_file = self._get_filename(grammar_hash)
+        if os.path.exists(cache_file):
+            with open(cache_file) as f:
+                data = json.load(f)
+                stat_result = os.fstat(f.fileno())
+            if (
+                os.name == "nt" or (
+                    stat_result.st_uid == os.getuid() and
+                    stat.S_IMODE(stat_result.st_mode) == 0o0600
+                )
+            ):
+                return data
+
+    def dump(self, grammar_hash, data):
+        """
+        Stores data in the cache.
+        """
+        cache_file = self._get_filename(grammar_hash)
+        fd = os.open(
+            cache_file, os.O_RDWR | os.O_CREAT | os.O_EXCL, 0o0600
+        )
+        with os.fdopen(fd, "w") as f:
+            json.dump(data, f)
