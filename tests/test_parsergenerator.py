@@ -1,9 +1,9 @@
-import py
 import os
 import tempfile
-import time
 
-from rply import ParserGenerator, Token,  DirectoryCache
+import py
+
+from rply import DirectoryCache, ParserGenerator, Token
 from rply.errors import ParserGeneratorError
 
 from .base import BaseTests
@@ -103,12 +103,8 @@ class TestParserCaching(object):
         def main(p):
             return p[0]
 
-        time0 = time.time()
         pg.build()
-        time1 = time.time()
         parser = pg.build()
-        time2 = time.time()
-        # assert time1 - time0 > time2 - time1
 
         assert parser.parse(iter([
             Token("VALUE", "3")
@@ -117,7 +113,7 @@ class TestParserCaching(object):
     def test_directory_nonexist(self):
         cache_dir = os.path.join(tempfile.gettempdir(), "nonexist")
         with py.test.raises(ValueError):
-            cache = DirectoryCache('simple', cache_dir)
+            DirectoryCache('simple', cache_dir)
 
     def test_invalid_dir(self):
         with py.test.raises(ValueError):
@@ -126,7 +122,3 @@ class TestParserCaching(object):
     def test_invalid_id(self):
         with py.test.raises(ValueError):
             DirectoryCache([])
-
-    def test_invalid_dir(self):
-        with py.test.raises(ValueError):
-            DirectoryCache(cache_dir=[])
