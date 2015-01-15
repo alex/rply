@@ -207,3 +207,38 @@ parsed the same as `16 * 32`) we use the following:
     @pg.production('expression : expression expression', precedence='MUL')
     def implicit_multiplication(p):
         return Mul(p[0], p[1])
+
+
+Caching Tables
+--------------
+
+Rather than regenerating the parsing tables each time the parser is built,
+it is possible to cache them.
+`rply` supports caching the tables to files within a specified directory with
+the `DirectoryCache` object.
+The `DirectoryCache` object accepts upto two paramaters, `cache_id` and `cache_dir`.
+If the cache ID paramater is not specified then one is generated randomly.
+If no path is specified, a temporary directory is used
+(as returned by `tempfile.gettempdir()`).
+The `DirectoryCache` object can then be parsed to the parser generator with the
+`cache` parameter.
+
+.. code:: python
+
+    from rply.parsergenerator import ParserGenerator, DirectoryCache
+
+    mycache = DirectoryCache('example_id', '/home/user/example/cache_directory/')
+    pg = ParserGenerator(
+        [...],
+        precedence=[...],
+        cache=mycache
+    )
+
+
+When the parser is built with `pg.build()` it will attempt to load the tables
+from the cache provided the grammar matches, otherwise it will create the tables
+and store them in the cache.
+
+It is also possible to implement your own caching object.
+A valid cache must is required to implement the `dump` and `load` methods.
+See the implementation of DirectoryCache for reference.
