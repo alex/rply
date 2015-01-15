@@ -217,8 +217,8 @@ it is possible to cache them.
 `rply` supports caching the tables to files within a specified directory with
 the `DirectoryCache` object.
 The `DirectoryCache` object accepts upto two paramaters, `cache_id` and `cache_dir`.
-If the cache ID paramater is not specified then one is generated randomly
-(and no caching will occur). If no path is specified, a temporary directory is used
+If the cache ID paramater is not specified then one is generated randomly.
+If no path is specified, a temporary directory is used
 (as returned by `tempfile.gettempdir()`).
 The `DirectoryCache` object can then be parsed to the parser generator with the
 `cache` parameter.
