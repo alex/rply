@@ -3,18 +3,19 @@
 set -e
 set -x
 
+export PYPY_LOCATION
 case "${TOX_ENV}" in
     py26)
-        export PYPY_LOCATION=""
+        PYPY_LOCATION=""
         ;;
     py33)
-        export PYPY_LOCATION=""
+        PYPY_LOCATION=""
         ;;
     py34)
-        export PYPY_LOCATION=""
+        PYPY_LOCATION=""
         ;;
     *)
-        export PYPY_LOCATION=`python -c "import glob; import os; print os.path.abspath(glob.glob('../pypy-pypy*')[0])"`
+        PYPY_LOCATION=`python -c "import glob; import os; print os.path.abspath(glob.glob('../pypy-pypy*')[0])"`
         ;;
 esac
 
