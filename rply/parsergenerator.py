@@ -2,11 +2,11 @@ import hashlib
 import json
 import os
 import random
-import stat
 import string
 import sys
-import tempfile
 import warnings
+
+from appdirs import AppDirs
 
 from rply.errors import ParserGeneratorError, ParserGeneratorWarning
 from rply.grammar import Grammar
@@ -175,44 +175,28 @@ class ParserGenerator(object):
         g.compute_first()
         g.compute_follow()
 
-        # win32 temp directories are already per-user
-        if os.name == "nt":
-            cache_file = os.path.join(
-                tempfile.gettempdir(),
-                "rply-%s-%s-%s.json" % (
-                    self.VERSION, self.cache_id, self.compute_grammar_hash(g)
-                )
+        cache_dir = AppDirs("rply").user_cache_dir
+        cache_file = os.path.join(
+            cache_dir,
+            "%s-%s-%s.json" % (
+                self.cache_id, self.VERSION, self.compute_grammar_hash(g)
             )
-        else:
-            cache_file = os.path.join(
-                tempfile.gettempdir(),
-                "rply-%s-%s-%s-%s.json" % (
-                    self.VERSION,
-                    os.getuid(),
-                    self.cache_id,
-                    self.compute_grammar_hash(g)
-                )
-            )
+        )
+
         table = None
         if os.path.exists(cache_file):
             with open(cache_file) as f:
                 data = json.load(f)
-                stat_result = os.fstat(f.fileno())
-            if (
-                os.name == "nt" or (
-                    stat_result.st_uid == os.getuid() and
-                    stat.S_IMODE(stat_result.st_mode) == 0o0600
-                )
-            ):
-                if self.data_is_valid(g, data):
-                    table = LRTable.from_cache(g, data)
+            if self.data_is_valid(g, data):
+                table = LRTable.from_cache(g, data)
         if table is None:
             table = LRTable.from_grammar(g)
-            fd = os.open(
-                cache_file, os.O_RDWR | os.O_CREAT | os.O_EXCL, 0o0600
-            )
-            with os.fdopen(fd, "w") as f:
+            if not os.path.exists(cache_dir):
+                os.makedirs(cache_dir, mode=0o0700)
+
+            with open(cache_file, "w") as f:
                 json.dump(self.serialize_table(table), f)
+
         if table.sr_conflicts:
             warnings.warn(
                 "%d shift/reduce conflict%s" % (
