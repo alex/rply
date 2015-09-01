@@ -13,4 +13,5 @@ setup(
     author="Alex Gaynor",
     author_email="alex.gaynor@gmail.com",
     packages=["rply"],
+    install_requires=["appdirs"],
 )
