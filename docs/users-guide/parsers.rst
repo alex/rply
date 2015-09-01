@@ -12,7 +12,7 @@ expressions as defined by the following BNF_ grammar::
                    | "(" <expression> ")"
 
 
-.. _BNF: http://en.wikipedia.org/wiki/Backus-Naur_Form
+.. _BNF: https://en.wikipedia.org/wiki/Backus-Naur_Form
 
 
 Furthermore we use the following lexer:
