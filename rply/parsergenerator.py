@@ -2,10 +2,8 @@ import hashlib
 import json
 import os
 import random
-import stat
 import string
 import sys
-import tempfile
 import warnings
 
 from appdirs import AppDirs
