@@ -192,7 +192,7 @@ class ParserGenerator(object):
         if table is None:
             table = LRTable.from_grammar(g)
             if not os.path.exists(cache_dir):
-                os.makedirs(cache_dir)
+                os.makedirs(cache_dir, mode=0o0700)
 
             with open(cache_file, "w") as f:
                 json.dump(self.serialize_table(table), f)
