@@ -4,6 +4,9 @@ set -e
 set -x
 
 case "${TOX_ENV}" in
+    py26)
+        expoert PYPY_LOCATION=""
+        ;;
     py33)
         export PYPY_LOCATION=""
         ;;
@@ -16,4 +19,3 @@ case "${TOX_ENV}" in
 esac
 
 tox -e $TOX_ENV
-
