@@ -5,7 +5,7 @@ set -x
 
 case "${TOX_ENV}" in
     py26)
-        expoert PYPY_LOCATION=""
+        export PYPY_LOCATION=""
         ;;
     py33)
         export PYPY_LOCATION=""
