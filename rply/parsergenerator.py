@@ -178,8 +178,8 @@ class ParserGenerator(object):
         cache_dir = AppDirs("rply").user_cache_dir
         cache_file = os.path.join(
             cache_dir,
-            "rply-%s-%s-%s.json" % (
-                self.VERSION, self.cache_id, self.compute_grammar_hash(g)
+            "%s-%s-%s.json" % (
+                self.cache_id, self.VERSION, self.compute_grammar_hash(g)
             )
         )
 
