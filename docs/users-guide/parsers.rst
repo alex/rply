@@ -163,7 +163,7 @@ error handler:
 
     @pg.error
     def error_handler(token):
-        raise ValueError("Ran into a %s where it was't expected" % token.gettokentype())
+        raise ValueError("Ran into a %s where it wasn't expected" % token.gettokentype())
 
 The `token` passed to the error handler will be the token the parser errored
 on.
