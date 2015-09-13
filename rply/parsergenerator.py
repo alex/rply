@@ -1,8 +1,6 @@
 import hashlib
 import json
 import os
-import random
-import string
 import sys
 import warnings
 
@@ -37,9 +35,6 @@ class ParserGenerator(object):
         self.tokens = tokens
         self.productions = []
         self.precedence = precedence
-        if cache_id is None:
-            # This ensures that we always go through the caching code.
-            cache_id = "".join(random.choice(string.ascii_letters) for _ in range(6))
         self.cache_id = cache_id
         self.error_handler = None
 
@@ -175,27 +170,30 @@ class ParserGenerator(object):
         g.compute_first()
         g.compute_follow()
 
-        cache_dir = AppDirs("rply").user_cache_dir
-        cache_file = os.path.join(
-            cache_dir,
-            "%s-%s-%s.json" % (
-                self.cache_id, self.VERSION, self.compute_grammar_hash(g)
-            )
-        )
-
         table = None
-        if os.path.exists(cache_file):
-            with open(cache_file) as f:
-                data = json.load(f)
-            if self.data_is_valid(g, data):
-                table = LRTable.from_cache(g, data)
+        if self.cache_id is not None:
+            cache_dir = AppDirs("rply").user_cache_dir
+            cache_file = os.path.join(
+                cache_dir,
+                "%s-%s-%s.json" % (
+                    self.cache_id, self.VERSION, self.compute_grammar_hash(g)
+                )
+            )
+
+            if os.path.exists(cache_file):
+                with open(cache_file) as f:
+                    data = json.load(f)
+                if self.data_is_valid(g, data):
+                    table = LRTable.from_cache(g, data)
         if table is None:
             table = LRTable.from_grammar(g)
-            if not os.path.exists(cache_dir):
-                os.makedirs(cache_dir, mode=0o0700)
 
-            with open(cache_file, "w") as f:
-                json.dump(self.serialize_table(table), f)
+            if self.cache_id is not None:
+                if not os.path.exists(cache_dir):
+                    os.makedirs(cache_dir, mode=0o0700)
+
+                with open(cache_file, "w") as f:
+                    json.dump(self.serialize_table(table), f)
 
         if table.sr_conflicts:
             warnings.warn(
