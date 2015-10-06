@@ -16,6 +16,9 @@ class LexingError(Exception):
         """
         return self.source_pos
 
+    def __repr__(self):
+        return 'LexingError(%r, %r)' % (self.message, self.source_pos)
+
 
 class ParsingError(Exception):
     """
@@ -30,6 +33,9 @@ class ParsingError(Exception):
         Returns the position in the source, at which this error occurred.
         """
         return self.source_pos
+
+    def __repr__(self):
+        return 'ParsingError(%r, %r)' % (self.message, self.source_pos)
 
 
 class ParserGeneratorWarning(Warning):
