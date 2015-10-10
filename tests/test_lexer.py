@@ -2,7 +2,7 @@ import re
 
 from pytest import raises
 
-from rply import LexerGenerator
+from rply import LexerGenerator, LexingError
 
 
 class TestLexer(object):
@@ -137,3 +137,16 @@ class TestLexer(object):
         l = lg.build()
 
         assert list(l.lex(" " * 2000)) == []
+
+    def test_error(self):
+        lg = LexerGenerator()
+        lg.add("NUMBER", r"\d+")
+        lg.add("PLUS", r"\+")
+
+        l = lg.build()
+
+        stream = l.lex('fail')
+        with raises(LexingError) as excinfo:
+            stream.next()
+
+        assert 'SourcePosition(' in repr(excinfo.value)
