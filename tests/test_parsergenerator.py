@@ -38,7 +38,7 @@ class TestParserGenerator(BaseTests):
         with py.test.raises(ParserGeneratorError):
             pg.build()
 
-    def test_nonexistant_precedence(self):
+    def test_nonexistent_precedence(self):
         pg = ParserGenerator(["VALUE"])
 
         @pg.production("main : VALUE", precedence="abc")
