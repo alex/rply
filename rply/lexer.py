@@ -32,13 +32,17 @@ class LexerStream(object):
             return match.start - last_nl
 
     def next(self):
-        if self.idx >= len(self.s):
-            raise StopIteration
-        for rule in self.lexer.ignore_rules:
-            match = rule.matches(self.s, self.idx)
-            if match:
-                self._update_pos(match)
-                return self.next()
+        while True:
+            if self.idx >= len(self.s):
+                raise StopIteration
+            for rule in self.lexer.ignore_rules:
+                match = rule.matches(self.s, self.idx)
+                if match:
+                    self._update_pos(match)
+                    break
+            else:
+                break
+
         for rule in self.lexer.rules:
             match = rule.matches(self.s, self.idx)
             if match:

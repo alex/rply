@@ -129,3 +129,11 @@ class TestLexer(object):
 
         with raises(StopIteration):
             stream.next()
+
+    def test_ignore_recursion(self):
+        lg = LexerGenerator()
+        lg.ignore(r"\s")
+
+        l = lg.build()
+
+        assert list(l.lex(" " * 2000)) == []
