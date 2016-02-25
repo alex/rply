@@ -33,7 +33,9 @@ We can now build a lexer and use it::
     Token(MINUS, '-')
     Token(NUMBER, '1')
 
-This works quite nicely however there is but a small problem::
+This works quite nicely however there is but a small problem:
+
+.. code-block:: pycon
 
     >>> for token in l.lex('1 + 1'):
     ...     print(token)
