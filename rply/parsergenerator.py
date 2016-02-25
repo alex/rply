@@ -492,15 +492,19 @@ class LRTable(object):
 
     @classmethod
     def compute_read_sets(cls, grammar, C, ntrans, nullable, add_count, cidhash, goto_cache):
-        FP = lambda x: cls.dr_relation(grammar, C, x, nullable, add_count, goto_cache)
-        R = lambda x: cls.reads_relation(C, x, nullable, add_count, cidhash, goto_cache)
-        return digraph(ntrans, R, FP)
+        return digraph(
+            ntrans,
+            R=lambda x: cls.reads_relation(C, x, nullable, add_count, cidhash, goto_cache),
+            FP=lambda x: cls.dr_relation(grammar, C, x, nullable, add_count, goto_cache)
+        )
 
     @classmethod
     def compute_follow_sets(cls, ntrans, readsets, includesets):
-        FP = lambda x: readsets[x]
-        R = lambda x: includesets.get(x, [])
-        return digraph(ntrans, R, FP)
+        return digraph(
+            ntrans,
+            R=lambda x: includesets.get(x, []),
+            FP=lambda x: readsets[x],
+        )
 
     @classmethod
     def dr_relation(cls, grammar, C, trans, nullable, add_count, goto_cache):

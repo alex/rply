@@ -4,14 +4,11 @@ set -e
 set -x
 
 export PYPY_LOCATION
-case "${TOX_ENV}" in
+case "${TOXENV}" in
     py26)
         PYPY_LOCATION=""
         ;;
-    py33)
-        PYPY_LOCATION=""
-        ;;
-    py34)
+    py3*)
         PYPY_LOCATION=""
         ;;
     *)
@@ -19,4 +16,4 @@ case "${TOX_ENV}" in
         ;;
 esac
 
-tox -e $TOX_ENV
+tox
