@@ -25,6 +25,7 @@ matrix:
           env: TOXENV=pep8
 
 install:
+    - pip install -U pip
     - pip install tox
     - wget https://bitbucket.org/pypy/pypy/get/default.tar.bz2 -O `pwd`/../pypy.tar.bz2
     - tar -xf `pwd`/../pypy.tar.bz2 -C `pwd`/../
