@@ -22,14 +22,6 @@ matrix:
         - python: 2.7
           env: TOXENV=pep8
 
-env:
-    - TOX_ENV=py26
-    - TOX_ENV=py27
-    - TOX_ENV=py33
-    - TOX_ENV=py34
-    - TOX_ENV=py35
-    - TOX_ENV=pypy
-
 install:
     - pip install tox
     - wget https://bitbucket.org/pypy/pypy/get/default.tar.bz2 -O `pwd`/../pypy.tar.bz2
