@@ -8,10 +8,7 @@ case "${TOXENV}" in
     py26)
         PYPY_LOCATION=""
         ;;
-    py33)
-        PYPY_LOCATION=""
-        ;;
-    py34)
+    py3*)
         PYPY_LOCATION=""
         ;;
     *)
