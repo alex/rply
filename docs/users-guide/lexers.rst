@@ -42,7 +42,7 @@ This works quite nicely however there is but a small problem:
     Token('NUMBER', '1')
     Traceback (most recent call last):
     ...
-    rply.errors.LexingError
+    LexingError
 
 What happened is that the lexer is able to match the `1` at the beginning of
 the string and it yields the correct token for that but afterwards the string
