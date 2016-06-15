@@ -120,4 +120,4 @@ Links
 * `PyPI releases <https://pypi.python.org/pypi/rply>`_
 * `Talk at PyCon US 2013: So you want to write an interpreter? <http://pyvideo.org/video/1694/so-you-want-to-write-an-interpreter>`_
 
-.. _`online`: https://rply.readthedocs.org/
+.. _`online`: https://rply.readthedocs.io/
