@@ -4,7 +4,7 @@ RPLY
 .. image:: https://secure.travis-ci.org/alex/rply.png
     :target: https://travis-ci.org/alex/rply
 
-Welcome to RPLY! A pure python parser generator, that also works with RPython.
+Welcome to RPLY! A pure Python parser generator, that also works with RPython.
 It is a more-or-less direct port of David Beazley's awesome PLY, with a new
 public API, and RPython support.
 
