@@ -1,3 +1,4 @@
+import itertools
 import hashlib
 import json
 import os
@@ -33,10 +34,32 @@ class ParserGenerator(object):
 
     def __init__(self, tokens, precedence=[], cache_id=None):
         self.tokens = tokens
-        self.productions = []
+        self.production_sets = [[]]
         self.precedence = precedence
         self.cache_id = cache_id
         self.error_handler = None
+
+    @property
+    def productions(self):
+        return list(itertools.chain(*self.production_sets[::-1]))
+
+    @property
+    def recent_productions(self):
+        return self.production_sets[-1]
+
+    def copy_to_extend(self):
+        new_tokens = self.tokens[:]
+        new_precedence = self.precedence[:]
+        new_cache_id = self.cache_id
+        if self.cache_id is not None:
+            new_cache_id += '_copy'
+
+        new_pg = self.__class__(new_tokens, new_precedence, new_cache_id)
+        new_pg.error_handler = self.error_handler
+        new_pg.production_sets = [ps[:] for ps in self.production_sets]
+        # Start a new production set
+        new_pg.production_sets.append([])
+        return new_pg
 
     def production(self, rule, precedence=None):
         """
@@ -76,7 +99,7 @@ class ParserGenerator(object):
         syms = parts[2:]
 
         def inner(func):
-            self.productions.append((production_name, syms, func, precedence))
+            self.recent_productions.append((production_name, syms, func, precedence))
             return func
         return inner
 
