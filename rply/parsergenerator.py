@@ -103,6 +103,9 @@ class ParserGenerator(object):
             return func
         return inner
 
+    def add_recent_productions(self, other):
+        self.recent_productions.extend(other.recent_productions)
+
     def error(self, func):
         """
         Sets the error handler that is called with the state (if passed to the
