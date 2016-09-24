@@ -54,6 +54,10 @@ class LRParser(object):
                     n = symstack[-1]
                     return n
             else:
+                self.sym_stack = symstack
+                self.state_stack = statestack
+                self.look_ahead = lookahead
+                self.look_ahead_stack = lookaheadstack
                 # TODO: actual error handling here
                 if self.error_handler is not None:
                     if state is None:
