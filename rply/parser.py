@@ -35,6 +35,8 @@ class LRParser(object):
                         lookahead = None
 
                 if lookahead is None:
+                    # Check if the only possible action from here is to end.
+                    could_only_end = len(self.lr_table.lr_action[current_state]) == 1
                     lookahead = Token("$end", "$end")
 
             ltype = lookahead.gettokentype()
@@ -61,6 +63,9 @@ class LRParser(object):
                 else:
                     # This is the output token.
                     n = symstack[-1]
+                    # Annotate the output token with whether or not the only
+                    # next step when we got to the end, was in fact to end.
+                    n._could_only_end = could_only_end
                     return n
             else:
                 self.sym_stack = symstack
