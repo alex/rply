@@ -1,10 +1,3 @@
-import py
-
-try:
-    from rpython.rtyper.test.test_llinterp import interpret
-except ImportError:
-    py.test.skip("Needs RPython to be on the PYTHONPATH")
-
 from rply import LexerGenerator, ParserGenerator, Token
 from rply.errors import ParserGeneratorWarning
 
@@ -112,11 +105,6 @@ class BaseTestTranslation(BaseTests):
             ]), state=state).getint() + state.count
 
         assert self.run(f, []) == 26
-
-
-class TestTranslation(BaseTestTranslation):
-    def run(self, func, args):
-        return interpret(func, args)
 
 
 class TestUntranslated(BaseTestTranslation):
