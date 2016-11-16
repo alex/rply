@@ -1,5 +1,7 @@
 import re
 
+from rply.lexer import Lexer
+
 try:
     import rpython
     from rpython.rlib.objectmodel import we_are_translated
@@ -22,8 +24,6 @@ if we_are_translated():
     from rpython.rtyper.lltypesystem.rstr import STR, string_repr
     from rpython.rtyper.rmodel import Repr
     from rpython.tool.pairtype import pairtype
-
-from rply.lexer import Lexer
 
 
 class Rule(object):
@@ -109,6 +109,7 @@ class LexerGenerator(object):
         :class:`~rply.Token` instances.
         """
         return Lexer(self.rules, self.ignore_rules)
+
 
 if we_are_translated():
     class RuleEntry(ExtRegistryEntry):
