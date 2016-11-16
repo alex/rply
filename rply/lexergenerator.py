@@ -1,7 +1,17 @@
 import re
 
+from rply.lexer import Lexer
+
 try:
     import rpython
+    from rpython.rlib.objectmodel import we_are_translated
+except ImportError:
+    rpython = None
+
+    def we_are_translated():
+        return False
+
+if we_are_translated():
     from rpython.annotator import model
     from rpython.annotator.bookkeeper import getbookkeeper
     from rpython.rlib.objectmodel import instantiate, hlinvoke
@@ -14,10 +24,6 @@ try:
     from rpython.rtyper.lltypesystem.rstr import STR, string_repr
     from rpython.rtyper.rmodel import Repr
     from rpython.tool.pairtype import pairtype
-except ImportError:
-    rpython = None
-
-from rply.lexer import Lexer
 
 
 class Rule(object):
@@ -104,7 +110,8 @@ class LexerGenerator(object):
         """
         return Lexer(self.rules, self.ignore_rules)
 
-if rpython:
+
+if we_are_translated():
     class RuleEntry(ExtRegistryEntry):
         _type_ = Rule
 
