@@ -104,6 +104,7 @@ class LexerGenerator(object):
         """
         return Lexer(self.rules, self.ignore_rules)
 
+
 if rpython:
     class RuleEntry(ExtRegistryEntry):
         _type_ = Rule
