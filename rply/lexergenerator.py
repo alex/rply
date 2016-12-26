@@ -42,7 +42,7 @@ class Match(object):
 
 
 class LexerGenerator(object):
-    """
+    r"""
     A LexerGenerator represents a set of rules that match pieces of text that
     should either be turned into tokens or ignored by the lexer.
 
