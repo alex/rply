@@ -193,7 +193,7 @@ class ParserGenerator(object):
                 if not os.path.exists(cache_dir):
                     os.makedirs(cache_dir, mode=0o0700)
 
-                with tempfile.NamedTemporaryFile(delete=False) as f:
+                with tempfile.NamedTemporaryFile(delete=False, mode="w") as f:
                     json.dump(self.serialize_table(table), f)
                 os.rename(f.name, cache_file)
 
