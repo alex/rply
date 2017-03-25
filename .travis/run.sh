@@ -9,7 +9,7 @@ case "${TOXENV}" in
         PYPY_LOCATION=""
         ;;
     *)
-        PYPY_LOCATION=`python -c "import glob; import os; print os.path.abspath(glob.glob('../pypy-pypy*')[0])"`
+        PYPY_LOCATION=$(python -c "import glob; import os; print os.path.abspath(glob.glob('../pypy-pypy*')[0])")
         ;;
 esac
 
