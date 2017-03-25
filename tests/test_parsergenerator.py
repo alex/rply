@@ -1,3 +1,5 @@
+import uuid
+
 import py
 
 from rply import ParserGenerator, Token
@@ -64,7 +66,9 @@ class TestParserGenerator(BaseTests):
 
 class TestParserCaching(object):
     def test_simple_caching(self):
-        pg = ParserGenerator(["VALUE"], cache_id="simple")
+        # Generate a random cache_id so that every test run does both the cache
+        # write and read paths.
+        pg = ParserGenerator(["VALUE"], cache_id=str(uuid.uuid4()))
 
         @pg.production("main : VALUE")
         def main(p):
