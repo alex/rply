@@ -5,10 +5,7 @@ set -x
 
 export PYPY_LOCATION
 case "${TOXENV}" in
-    py26)
-        PYPY_LOCATION=""
-        ;;
-    py3*)
+    py26|py3*)
         PYPY_LOCATION=""
         ;;
     *)
