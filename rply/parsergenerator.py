@@ -2,6 +2,7 @@ import hashlib
 import json
 import os
 import sys
+import tempfile
 import warnings
 
 from appdirs import AppDirs
@@ -192,8 +193,9 @@ class ParserGenerator(object):
                 if not os.path.exists(cache_dir):
                     os.makedirs(cache_dir, mode=0o0700)
 
-                with open(cache_file, "w") as f:
+                with tempfile.NamedTemporaryFile(delete=False, mode="w") as f:
                     json.dump(self.serialize_table(table), f)
+                os.rename(f.name, cache_file)
 
         if table.sr_conflicts:
             warnings.warn(
