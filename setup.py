@@ -9,7 +9,7 @@ setup(
     description="A pure Python Lex/Yacc that works with RPython",
     long_description=readme,
     # duplicated in docs/conf.py and rply/__init__.py
-    version="0.7.4",
+    version="0.7.5",
     author="Alex Gaynor",
     author_email="alex.gaynor@gmail.com",
     packages=["rply"],
