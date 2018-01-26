@@ -20,7 +20,7 @@ expressions::
     lg.add('PLUS', r'\+')
     lg.add('MINUS', r'-')
 
-We have no defined rules for numbers, an addition and subtraction operator.
+We have now defined rules for numbers, an addition and subtraction operator.
 We can now build a lexer and use it::
 
     >>> l = lg.build()
