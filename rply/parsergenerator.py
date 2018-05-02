@@ -212,7 +212,7 @@ class ParserGenerator(object):
                 stacklevel=2,
             )
         return LRParser(table, self.error_handler)
-    
+
     def _write_cache(self, cache_dir, cache_file, table):
         if not os.path.exists(cache_dir):
             try:
