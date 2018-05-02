@@ -191,7 +191,7 @@ class ParserGenerator(object):
             table = LRTable.from_grammar(g)
 
             if self.cache_id is not None:
-                self._write_cache(cache_dir, table)
+                self._write_cache(cache_dir, cache_file, table)
 
         if table.sr_conflicts:
             warnings.warn(
@@ -213,7 +213,7 @@ class ParserGenerator(object):
             )
         return LRParser(table, self.error_handler)
     
-    def _write_cache(self, cache_dir, table):
+    def _write_cache(self, cache_dir, cache_file, table):
         if not os.path.exists(cache_dir):
             try:
                 os.makedirs(cache_dir, mode=0o0700)
