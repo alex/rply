@@ -1,3 +1,4 @@
+import errno
 import hashlib
 import json
 import os
@@ -190,12 +191,7 @@ class ParserGenerator(object):
             table = LRTable.from_grammar(g)
 
             if self.cache_id is not None:
-                if not os.path.exists(cache_dir):
-                    os.makedirs(cache_dir, mode=0o0700)
-
-                with tempfile.NamedTemporaryFile(dir=cache_dir, delete=False, mode="w") as f:
-                    json.dump(self.serialize_table(table), f)
-                os.rename(f.name, cache_file)
+                self._write_cache(cache_dir, table)
 
         if table.sr_conflicts:
             warnings.warn(
@@ -216,6 +212,19 @@ class ParserGenerator(object):
                 stacklevel=2,
             )
         return LRParser(table, self.error_handler)
+    
+    def _write_cache(self, cache_dir, table):
+        if not os.path.exists(cache_dir):
+            try:
+                os.makedirs(cache_dir, mode=0o0700)
+            except OSError as e:
+                if e.errno == errno.EROFS:
+                    return
+                raise
+
+        with tempfile.NamedTemporaryFile(dir=cache_dir, delete=False, mode="w") as f:
+            json.dump(self.serialize_table(table), f)
+        os.rename(f.name, cache_file)
 
 
 def digraph(X, R, FP):
