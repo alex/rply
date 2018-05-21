@@ -2,13 +2,14 @@ import re
 
 try:
     import rpython
+    from rpython.rlib.objectmodel import we_are_translated
     from rpython.rlib.rsre import rsre_core
     from rpython.rlib.rsre.rpy import get_code
-
-    from rpython.rlib.objectmodel import we_are_translated
 except ImportError:
     rpython = None
-    def we_are_translated(): return False
+
+    def we_are_translated():
+        return False
 
 from rply.lexer import Lexer
 
@@ -111,5 +112,3 @@ class LexerGenerator(object):
         :class:`~rply.Token` instances.
         """
         return Lexer(self.rules, self.ignore_rules)
-
-
