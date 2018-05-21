@@ -2,18 +2,8 @@ import re
 
 try:
     import rpython
-    from rpython.annotator import model
-    from rpython.annotator.bookkeeper import getbookkeeper
-    from rpython.rlib.objectmodel import instantiate, hlinvoke
     from rpython.rlib.rsre import rsre_core
     from rpython.rlib.rsre.rpy import get_code
-    from rpython.rtyper.annlowlevel import llstr, hlstr
-    from rpython.rtyper.extregistry import ExtRegistryEntry
-    from rpython.rtyper.lltypesystem import lltype
-    from rpython.rtyper.lltypesystem.rlist import FixedSizeListRepr
-    from rpython.rtyper.lltypesystem.rstr import STR, string_repr
-    from rpython.rtyper.rmodel import Repr
-    from rpython.tool.pairtype import pairtype
 
     from rpython.rlib.objectmodel import we_are_translated
 except ImportError:
