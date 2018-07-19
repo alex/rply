@@ -137,3 +137,55 @@ class TestLexer(object):
         l = lg.build()
 
         assert list(l.lex(" " * 2000)) == []
+
+    def test_transitions(self):
+        lg = LexerGenerator()
+        lg.add('NUMBER', r'\d+')
+        lg.add('ADD', r'\+')
+        lg.add('COMMENT_START', r'\(#', transition='push', target='comment')
+        lg.ignore(r'\s+')
+
+        comment = lg.add_state('comment')
+        comment.add('COMMENT_START', r'\(#', transition='push', target='comment')
+        comment.add('COMMENT_END', r'#\)', transition='pop')
+        comment.add('COMMENT', r'([^(#]|#(?!\))|\)(?!#))+')
+
+        l = lg.build()
+
+        stream = l.lex('(# this is (# a nested comment #)#) 1 + 1 (# 1 # 1 #)')
+        t = stream.next()
+        assert t.name == 'COMMENT_START'
+        assert t.value == '(#'
+        t = stream.next()
+        assert t.name == 'COMMENT'
+        assert t.value == ' this is '
+        t = stream.next()
+        assert t.name == 'COMMENT_START'
+        assert t.value == '(#'
+        t = stream.next()
+        assert t.name == 'COMMENT'
+        assert t.value == ' a nested comment '
+        t = stream.next()
+        assert t.name == 'COMMENT_END'
+        assert t.value == '#)'
+        t = stream.next()
+        assert t.name == 'COMMENT_END'
+        assert t.value == '#)'
+        t = stream.next()
+        assert t.name == 'NUMBER'
+        assert t.value == '1'
+        t = stream.next()
+        assert t.name == 'ADD'
+        assert t.value == '+'
+        t = stream.next()
+        assert t.name == 'NUMBER'
+        assert t.value == '1'
+        t = stream.next()
+        assert t.name == 'COMMENT_START'
+        assert t.value == '(#'
+        t = stream.next()
+        assert t.name == 'COMMENT'
+        assert t.value == ' 1 # 1 '
+        t = stream.next()
+        assert t.name == 'COMMENT_END'
+        assert t.value == '#)'
