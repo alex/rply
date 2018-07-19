@@ -50,6 +50,93 @@ class BaseTestTranslation(BaseTests):
 
         assert self.run(f, [14]) == 42
 
+    def test_stacked_lexer(self):
+        lg = LexerGenerator()
+        lg.add('NUMBER', r'\d+')
+        lg.add('ADD', r'\+')
+        lg.add('COMMENT_START', r'\(#', transition='push', target='comment')
+
+        lg.ignore(r'\s+')
+
+        comment = lg.add_state('comment')
+        comment.add('COMMENT_START', r'\(#', transition='push', target='comment')
+        comment.add('COMMENT_END', r'#\)', transition='pop')
+        comment.add('COMMENT', r'([^(#]|#(?!\))|\)(?!#))+')
+
+        l = lg.build()
+
+        def f():
+            stream = l.lex('(# this is (# a nested comment #)#) 1 + 1 (# 1 # 1 #)')
+            t = stream.next()
+            if t.name != 'COMMENT_START':
+                return -1
+            if t.value != '(#':
+                return -2
+            t = stream.next()
+            if t.name != 'COMMENT':
+                return -3
+            if t.value != ' this is ':
+                return -4
+            t = stream.next()
+            if t.name != 'COMMENT_START':
+                return -5
+            if t.value != '(#':
+                return -6
+            t = stream.next()
+            if t.name != 'COMMENT':
+                return -7
+            if t.value != ' a nested comment ':
+                return -8
+            t = stream.next()
+            if t.name != 'COMMENT_END':
+                return -9
+            if t.value != '#)':
+                return -10
+            t = stream.next()
+            if t.name != 'COMMENT_END':
+                return -11
+            if t.value != '#)':
+                return -12
+            t = stream.next()
+            if t.name != 'NUMBER':
+                return -13
+            if t.value != '1':
+                return -14
+            t = stream.next()
+            if t.name != 'ADD':
+                return -15
+            if t.value != '+':
+                return -16
+            t = stream.next()
+            if t.name != 'NUMBER':
+                return -17
+            if t.value != '1':
+                return -18
+            t = stream.next()
+            if t.name != 'COMMENT_START':
+                return -19
+            if t.value != '(#':
+                return -20
+            t = stream.next()
+            if t.name != 'COMMENT':
+                return -21
+            if t.value != ' 1 # 1 ':
+                return -22
+            t = stream.next()
+            if t.name != 'COMMENT_END':
+                return -23
+            if t.value != '#)':
+                return -24
+            try:
+                stream.next()
+            except StopIteration:
+                pass
+            else:
+                return -25
+            return 0
+
+        assert self.run(f, []) == 0
+
     def test_basic_parser(self):
         pg = ParserGenerator(["NUMBER", "PLUS"])
 
