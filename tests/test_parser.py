@@ -164,6 +164,7 @@ class TestParser(BaseTests):
             ]))
 
         assert exc_info.value.getsourcepos().lineno == 10
+        assert 'SourcePosition' in repr(exc_info.value)
 
     def test_parse_error_handler(self):
         pg = ParserGenerator(["VALUE"])
