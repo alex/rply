@@ -1,5 +1,9 @@
 import sys
-from collections import MutableMapping
+
+if sys.version_info > (3, 0):
+    from collections.abc import MutableMapping
+else:
+    from collections import MutableMapping
 
 
 class IdentityDict(MutableMapping):
