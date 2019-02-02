@@ -33,9 +33,10 @@ class Rule(object):
             return Match(*m.span(0)) if m is not None else None
         else:
             assert pos >= 0
-            ctx = rsre_core.StrMatchContext(s, pos, len(s), self.flags)
-
-            matched = rsre_core.match_context(ctx, self._pattern)
+            ctx = rsre_core.StrMatchContext(self._pattern, s, pos, len(s), self.flags)
+#            ctx = rsre_core.StrMatchContext(s, pos, len(s), self.flags)
+            matched = rsre_core.match_context(ctx)
+#            matched = rsre_core.match_context(ctx, self._pattern)
             if matched:
                 return Match(ctx.match_start, ctx.match_end)
             else:
