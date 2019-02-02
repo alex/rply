@@ -34,7 +34,9 @@ class Rule(object):
         else:
             assert pos >= 0
             ctx = rsre_core.StrMatchContext(self._pattern, s, pos, len(s), self.flags)
+#            ctx = rsre_core.StrMatchContext(s, pos, len(s), self.flags)
             matched = rsre_core.match_context(ctx)
+#            matched = rsre_core.match_context(ctx, self._pattern)
             if matched:
                 return Match(ctx.match_start, ctx.match_end)
             else:
