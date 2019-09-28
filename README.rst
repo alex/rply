@@ -110,7 +110,7 @@ exception. It receives the ``Token`` object that the parser errored on.
 Python compatibility
 --------------------
 
-RPly is tested and known to work under Python 2.6, 2.7, 3.4+, and PyPy. It is
+RPly is tested and known to work under Python 2.7, 3.4+, and PyPy. It is
 also valid RPython for PyPy checkouts from ``6c642ae7a0ea`` onwards.
 
 Links
