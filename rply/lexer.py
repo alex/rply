@@ -18,6 +18,7 @@ class LexerStream(object):
         self.idx = 0
 
         self._lineno = 1
+        self._colno = 1
 
     def __iter__(self):
         return self
@@ -47,14 +48,15 @@ class LexerStream(object):
             match = rule.matches(self.s, self.idx)
             if match:
                 lineno = self._lineno
-                colno = self._update_pos(match)
-                source_pos = SourcePosition(match.start, lineno, colno)
+                self._colno = self._update_pos(match)
+                source_pos = SourcePosition(match.start, lineno, self._colno)
                 token = Token(
                     rule.name, self.s[match.start:match.end], source_pos
                 )
                 return token
         else:
-            raise LexingError(None, SourcePosition(self.idx, -1, -1))
+            raise LexingError(None, SourcePosition(
+                self.idx, self._lineno, self._colno))
 
     def __next__(self):
         return self.next()
