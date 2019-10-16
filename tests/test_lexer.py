@@ -150,3 +150,30 @@ class TestLexer(object):
             stream.next()
 
         assert 'SourcePosition(' in repr(excinfo.value)
+
+    def test_error_line_number(self):
+        lg = LexerGenerator()
+        lg.add("NEW_LINE", r"\n")
+        l = lg.build()
+
+        stream = l.lex("\nfail")
+        stream.next()
+        with raises(LexingError) as excinfo:
+            stream.next()
+
+        assert excinfo.value.source_pos.lineno == 2
+
+    def test_error_column_number(self):
+        lg = LexerGenerator()
+        lg.add("NUMBER", r"\d+")
+        lg.add("PLUS", r"\+")
+        l = lg.build()
+        stream = l.lex("1+2+fail")
+        stream.next()
+        stream.next()
+        stream.next()
+        stream.next()
+        with raises(LexingError) as excinfo:
+            stream.next()
+
+        assert excinfo.value.source_pos.colno == 4
