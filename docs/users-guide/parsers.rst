@@ -132,6 +132,25 @@ non-terminals (intermediate values, in this case only `expression`) using
 the :meth:`~rply.ParserGenerator.production` decorator. The function
 receives a list of the tokens and non-terminals and returns a non-terminal.
 
+It is possible to chain multiple production rule right-hand sides with "|".
+Thus, the following are equivalent:
+
+.. code:: python
+
+    from rply import ParserGenerator
+
+    pg = ParserGenerator(["TOK1", "TOK2"])
+
+    @pg.production("rule: TOK1")
+    @pg.production("rule: TOK2")
+    def prod(p):
+        pass
+
+    @pg.production("rule: TOK1 | TOK2")
+    def prod_shorthand(p):
+        pass
+
+
 In this case we create an abstract syntax tree. We can now use this parser in
 combination with the lexer given to parse and evaluate mathematical expressions
 as defined by our grammar::
