@@ -75,10 +75,14 @@ class ParserGenerator(object):
         production_name = parts[0]
         if parts[1] != ":":
             raise ParserGeneratorError("Expecting :")
-        syms = parts[2:]
+
+        body = " ".join(parts[2:])
+        prods = body.split("|")
 
         def inner(func):
-            self.productions.append((production_name, syms, func, precedence))
+            for production in prods:
+                syms = production.split()
+                self.productions.append((production_name, syms, func, precedence))
             return func
         return inner
 
