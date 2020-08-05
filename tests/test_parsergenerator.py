@@ -63,6 +63,25 @@ class TestParserGenerator(BaseTests):
 
         pg.build()
 
+    def test_pipe_production(self):
+        pg = ParserGenerator(["VALUE1", "VALUE2"])
+
+        @pg.production("main : VALUE1 | VALUE2")
+        def main(p):
+            return p[0]
+
+        parser = pg.build()
+
+        assert len(pg.productions) == 2
+
+        assert parser.parse(iter([
+            Token("VALUE1", "3")
+        ])) == Token("VALUE1", "3")
+
+        assert parser.parse(iter([
+            Token("VALUE2", "3")
+        ])) == Token("VALUE2", "3")
+
 
 class TestParserCaching(object):
     def test_simple_caching(self):
