@@ -62,7 +62,7 @@ class TestParserGenerator(BaseTests):
             pass
 
         pg.build()
-    
+
     def test_pipe_production(self):
         pg = ParserGenerator(["VALUE1", "VALUE2"])
 
