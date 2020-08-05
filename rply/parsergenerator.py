@@ -42,12 +42,12 @@ class ParserGenerator(object):
 
     def production(self, rule, precedence=None):
         """
-        A decorator that defines one or many production rules and registers 
-        the decorated function to be called with the terminals and 
+        A decorator that defines one or many production rules and registers
+        the decorated function to be called with the terminals and
         non-terminals matched by those rules.
 
         A `rule` should consist of a name defining the non-terminal returned
-        by the decorated function and one or more sequences of |-separated 
+        by the decorated function and one or more sequences of \|-separated
         non-terminals and terminals that are supposed to be replaced::
 
             replacing_non_terminal : TERMINAL1 non_term1 | TERMINAL2 non_term2
