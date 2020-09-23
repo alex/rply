@@ -21,7 +21,6 @@ class Rule(object):
         self.name = name
         self.re = re.compile(pattern, flags=flags)
         if rpython:
-            self.flags = flags
             self._pattern = get_code(pattern, flags)
 
     def _freeze_(self):
@@ -33,7 +32,7 @@ class Rule(object):
             return Match(*m.span(0)) if m is not None else None
         else:
             assert pos >= 0
-            ctx = rsre_core.StrMatchContext(s, pos, len(s), self.flags)
+            ctx = rsre_core.StrMatchContext(s, pos, len(s))
 
             matched = rsre_core.match_context(ctx, self._pattern)
             if matched:
