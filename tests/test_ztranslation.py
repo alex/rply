@@ -1,4 +1,6 @@
-import py, re
+import re
+
+import py
 
 try:
     from rpython.rtyper.test.test_llinterp import interpret
