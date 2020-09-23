@@ -1,4 +1,4 @@
-import py
+import py, re
 
 try:
     from rpython.rtyper.test.test_llinterp import interpret
@@ -49,6 +49,32 @@ class BaseTestTranslation(BaseTests):
             return s
 
         assert self.run(f, [14]) == 42
+
+    def test_regex_flags(self):
+        lg = LexerGenerator()
+        lg.add("ALL", r".*", re.DOTALL)
+
+        l = lg.build()
+
+        def f(n):
+            tokens = l.lex("%d\n%d" % (n, n))
+
+            t = tokens.next()
+            if t.name != "ALL":
+                return -1
+
+            ended = False
+            try:
+                tokens.next()
+            except StopIteration:
+                ended = True
+
+            if not ended:
+                return -2
+
+            return 1
+
+        assert self.run(f, [3]) == 1
 
     def test_basic_parser(self):
         pg = ParserGenerator(["NUMBER", "PLUS"])
