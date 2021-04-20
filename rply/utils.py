@@ -43,14 +43,6 @@ class Counter(object):
 
 
 if sys.version_info >= (3,):
-    def itervalues(d):
-        return d.values()
-
-    def iteritems(d):
-        return d.items()
+    itervalues, iteritems = dict.values, dict.items
 else:
-    def itervalues(d):
-        return d.itervalues()
-
-    def iteritems(d):
-        return d.iteritems()
+    itervalues, iteritems = dict.itervalues, dict.iteritems
