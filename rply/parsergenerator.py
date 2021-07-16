@@ -6,7 +6,7 @@ import sys
 import tempfile
 import warnings
 
-from appdirs import AppDirs
+from platformdirs import PlatformDirs
 
 from rply.errors import ParserGeneratorError, ParserGeneratorWarning
 from rply.grammar import Grammar
@@ -178,7 +178,7 @@ class ParserGenerator(object):
 
         table = None
         if self.cache_id is not None:
-            cache_dir = AppDirs("rply").user_cache_dir
+            cache_dir = PlatformDirs("rply").user_cache_dir
             cache_file = os.path.join(
                 cache_dir,
                 "%s-%s-%s.json" % (
