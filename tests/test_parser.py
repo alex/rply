@@ -1,6 +1,6 @@
 import operator
 
-import py
+import pytest
 
 from rply import ParserGenerator, ParsingError, Token
 from rply.errors import ParserGeneratorWarning
@@ -157,7 +157,7 @@ class TestParser(BaseTests):
 
         parser = pg.build()
 
-        with py.test.raises(ParsingError) as exc_info:
+        with pytest.raises(ParsingError) as exc_info:
             parser.parse(iter([
                 Token("VALUE", "hello"),
                 Token("VALUE", "world", SourcePosition(5, 10, 2)),
@@ -181,7 +181,7 @@ class TestParser(BaseTests):
 
         token = Token("VALUE", "world")
 
-        with py.test.raises(ValueError) as exc_info:
+        with pytest.raises(ValueError) as exc_info:
             parser.parse(iter([
                 Token("VALUE", "hello"),
                 token
@@ -236,7 +236,7 @@ class TestParser(BaseTests):
 
         state = ParserState()
         token = Token("VALUE", "")
-        with py.test.raises(ValueError) as exc_info:
+        with pytest.raises(ValueError) as exc_info:
             parser.parse(iter([token]), state=state)
 
         assert exc_info.value.args[0] is state
