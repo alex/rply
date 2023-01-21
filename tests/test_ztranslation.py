@@ -1,11 +1,11 @@
 import re
 
-import py
+import pytest
 
 try:
     from rpython.rtyper.test.test_llinterp import interpret
 except ImportError:
-    pytestmark = py.test.mark.skip("Needs RPython to be on the PYTHONPATH")
+    pytestmark = pytest.mark.skip("Needs RPython to be on the PYTHONPATH")
 
 from rply import LexerGenerator, ParserGenerator, Token
 from rply.errors import ParserGeneratorWarning
