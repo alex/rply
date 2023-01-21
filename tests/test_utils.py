@@ -1,6 +1,6 @@
 from operator import itemgetter
 
-import py
+import pytest
 
 from rply.utils import IdentityDict
 
@@ -20,7 +20,7 @@ class TestIdentityDict(object):
         x = []
         d[x] = "hello"
         del d[x]
-        with py.test.raises(KeyError):
+        with pytest.raises(KeyError):
             d[x]
 
     def test_len(self):
